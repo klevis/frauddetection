@@ -1,4 +1,4 @@
-function [newData,dataVal]=internalPickRandomFromData(data,randomFraudSize,randomNormalSize,fraudCol)
+function [newData,dataVal]=internalChooseRandomData(data,randomFraudSize,randomNormalSize,fraudCol)
 
 #filter randomFraudSize and non randomFraudSize
 fraudRows=find(data(:,fraudCol)==1);
