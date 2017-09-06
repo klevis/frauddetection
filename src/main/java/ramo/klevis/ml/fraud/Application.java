@@ -17,12 +17,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by klevis.ramo on 9/5/2017.
@@ -65,15 +63,20 @@ public class Application {
         JavaRDD<Vector> paralleledTestData = sc.parallelize(testData);
         MultivariateGaussian multivariateGaussian = new MultivariateGaussian(summary.mean(), DenseMatrix.diag(summary.variance()));
         List<Double> testDataProbabilityDenseFunction = paralleledTestData.map(e -> multivariateGaussian.logpdf(e)).collect();
-        long foundFrauds = IntStream.range(0, testDataProbabilityDenseFunction.size()).
+        long foundFrauds = IntStream.range(0, testDataProbabilityDenseFunction.size()).parallel().
                 filter(index -> testDataProbabilityDenseFunction.get(index) < bestEpsilon
                         && ((Double) testData.get(index).apply(FRAUD_COLUMN)).equals(Double.valueOf(1))).count();
 
-        long flaggedFrauds = IntStream.range(0, testDataProbabilityDenseFunction.size()).
+        long flaggedFrauds = IntStream.range(0, testDataProbabilityDenseFunction.size()).parallel().
                 filter(index -> testDataProbabilityDenseFunction.get(index) < bestEpsilon).count();
+
+        long missedFrauds = IntStream.range(0, testDataProbabilityDenseFunction.size()).parallel().
+                filter(index -> testDataProbabilityDenseFunction.get(index) > bestEpsilon
+                        && ((Double) testData.get(index).apply(FRAUD_COLUMN)).equals(Double.valueOf(1))).count();
 
         System.out.println("foundFrauds = " + foundFrauds);
         System.out.println("flaggedFrauds = " + flaggedFrauds);
+        System.out.println("missedFrauds = " + missedFrauds);
     }
 
     private static Double findBestEpsilon(JavaSparkContext sc, ArrayList<Vector> crossData, MultivariateStatisticalSummary summary) {
