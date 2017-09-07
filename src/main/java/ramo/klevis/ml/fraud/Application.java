@@ -87,7 +87,7 @@ public class Application {
 
         totalFoundFrauds = totalFoundFrauds + foundFrauds;
         totalMissedFrauds = totalMissedFrauds + missedFrauds;
-        System.out.println("foundFrauds = " + foundFrauds + " from total " + totalFrauds + " -> " + ((double)(foundFrauds / totalFrauds) * 100));
+        System.out.println("foundFrauds = " + foundFrauds + " from total " + totalFrauds + " -> " + (((double)foundFrauds /(double) totalFrauds) * 100));
         System.out.println("flaggedFrauds = " + flaggedFrauds);
         System.out.println("missedFrauds = " + missedFrauds);
     }
@@ -180,10 +180,10 @@ public class Application {
         br.readLine();
         while ((line = br.readLine()) != null) {
             double[] as = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
-            double[] power = {0.5, 0.05, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
-            for (int i = 0; i < as.length; i++) {
-                as[i] = Math.pow(as[i], power[i]);
-            }
+//            double[] power = {0.5, 0.05, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
+//            for (int i = 0; i < as.length; i++) {
+//                as[i] = Math.pow(as[i], power[i]);
+//            }
             double[] doubles1 = Arrays.copyOfRange(as, 0, 1);
             double[] doubles2 = Arrays.copyOfRange(as, 2, 9);
 //            if (as[1] == 2d)
