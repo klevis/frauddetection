@@ -1,4 +1,4 @@
-function [bestEpsilon bestF1] = selectThreshold(dataCross,crossFraudResults, crossFunctionResults)
+function [bestEpsilon bestF1] = findBestEpsilon(dataCross,crossFraudResults, crossFunctionResults)
 
 bestEpsilon = 0;
 bestF1 = 0;
