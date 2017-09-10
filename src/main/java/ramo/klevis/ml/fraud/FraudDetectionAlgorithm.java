@@ -63,8 +63,8 @@ public class FraudDetectionAlgorithm implements Serializable {
         //randomize regular
         Collections.shuffle(regularList);
 
-        resultsSummary.setRegularSize(regularList.size());
-        resultsSummary.setFraudSize(anomaliesList.size());
+        resultsSummary.setTotalRegularSize(regularList.size());
+        resultsSummary.setTotalFraudSize(anomaliesList.size());
 
         //choose 60% as train data with no anomalies
         int trainingDataSize = (int) (0.6 * regularList.size());
@@ -73,7 +73,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize);
 
         resultsSummary.setTrainDataSize(trainData.size());
-        resultsSummary.setCrossDataSize(crossData.size());
+        resultsSummary.setCrossTotalDataSize(crossData.size());
         resultsSummary.setTestDataSize(testData.size());
 
         JavaRDD<LabeledPoint> paralleledTrainData = sc.parallelize(trainData);

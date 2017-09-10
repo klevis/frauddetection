@@ -5,12 +5,7 @@ package ramo.klevis.ml.fraud;
  */
 public class ResultsSummary {
 
-    private long regularSize;
-    private long fraudSize;
-
     private long trainDataSize;
-    private long crossDataSize;
-    private long testDataSize;
 
     private long timeInMilliseconds;
 
@@ -22,28 +17,75 @@ public class ResultsSummary {
     private long testFoundFraudSize;
     private long testFlaggedAsFraud;
     private long testFraudSize;
+    private long testRegularSize;
+    private long testTotalDataSize;
 
     private double successPercentage;
     private double failPercentage;
+
+    private long totalRegularSize;
+    private long totalFraudSize;
+    private long totalNotFoundFraudSize;
+    private long totalFoundFraudSize;
+    private long totalFlaggedAsFraud;
+
     private long crossFoundFraudSize;
     private long crossFlaggedAsFraud;
     private long crossNotFoundFraudSize;
     private long crossFraudSize;
+    private long crossRegularSize;
+    private long crossTotalDataSize;
 
-    public long getRegularSize() {
-        return regularSize;
+    public long getCrossRegularSize() {
+        return crossRegularSize;
     }
 
-    public void setRegularSize(long regularSize) {
-        this.regularSize = regularSize;
+    public void setCrossRegularSize(long crossRegularSize) {
+        this.crossRegularSize = crossRegularSize;
     }
 
-    public long getFraudSize() {
-        return fraudSize;
+    public long getTestTotalDataSize() {
+        return testTotalDataSize;
     }
 
-    public void setFraudSize(long fraudSize) {
-        this.fraudSize = fraudSize;
+    public void setTestTotalDataSize(long testTotalDataSize) {
+        this.testTotalDataSize = testTotalDataSize;
+    }
+
+    public long getTestRegularSize() {
+        return testRegularSize;
+    }
+
+    public void setTestRegularSize(long testRegularSize) {
+        this.testRegularSize = testRegularSize;
+    }
+
+    public long getTotalNotFoundFraudSize() {
+        return totalNotFoundFraudSize;
+    }
+
+    public long getTotalFoundFraudSize() {
+        return totalFoundFraudSize;
+    }
+
+    public long getTotalFlaggedAsFraud() {
+        return totalFlaggedAsFraud;
+    }
+
+    public long getTotalRegularSize() {
+        return totalRegularSize;
+    }
+
+    public void setTotalRegularSize(long totalRegularSize) {
+        this.totalRegularSize = totalRegularSize;
+    }
+
+    public long getTotalFraudSize() {
+        return totalFraudSize;
+    }
+
+    public void setTotalFraudSize(long totalFraudSize) {
+        this.totalFraudSize = totalFraudSize;
     }
 
     public long getTrainDataSize() {
@@ -54,20 +96,20 @@ public class ResultsSummary {
         this.trainDataSize = trainDataSize;
     }
 
-    public long getCrossDataSize() {
-        return crossDataSize;
+    public long getCrossTotalDataSize() {
+        return crossTotalDataSize;
     }
 
-    public void setCrossDataSize(long crossDataSize) {
-        this.crossDataSize = crossDataSize;
+    public void setCrossTotalDataSize(long crossTotalDataSize) {
+        this.crossTotalDataSize = crossTotalDataSize;
     }
 
     public long getTestDataSize() {
-        return testDataSize;
+        return testTotalDataSize;
     }
 
-    public void setTestDataSize(long testDataSize) {
-        this.testDataSize = testDataSize;
+    public void setTestDataSize(long testTotalDataSize) {
+        this.testTotalDataSize = testTotalDataSize;
     }
 
     public long getTimeInMilliseconds() {
@@ -130,55 +172,48 @@ public class ResultsSummary {
         return successPercentage;
     }
 
-    public void setSuccessPercentage(double successPercentage) {
-        this.successPercentage = successPercentage;
-    }
 
     public double getFailPercentage() {
         return failPercentage;
-    }
-
-    public void setFailPercentage(double failPercentage) {
-        this.failPercentage = failPercentage;
-    }
-
-    public void setTestFraudSize(long testFraudSize) {
-        this.testFraudSize = testFraudSize;
     }
 
     public long getTestFraudSize() {
         return testFraudSize;
     }
 
-    public void setCrossFoundFraudSize(long crossFoundFraudSize) {
-        this.crossFoundFraudSize = crossFoundFraudSize;
+    public void setTestFraudSize(long testFraudSize) {
+        this.testFraudSize = testFraudSize;
     }
 
     public long getCrossFoundFraudSize() {
         return crossFoundFraudSize;
     }
 
-    public void setCrossFlaggedAsFraud(long crossFlaggedAsFraud) {
-        this.crossFlaggedAsFraud = crossFlaggedAsFraud;
+    public void setCrossFoundFraudSize(long crossFoundFraudSize) {
+        this.crossFoundFraudSize = crossFoundFraudSize;
     }
 
     public long getCrossFlaggedAsFraud() {
         return crossFlaggedAsFraud;
     }
 
-    public void setCrossNotFoundFraudSize(long crossNotFoundFraudSize) {
-        this.crossNotFoundFraudSize = crossNotFoundFraudSize;
+    public void setCrossFlaggedAsFraud(long crossFlaggedAsFraud) {
+        this.crossFlaggedAsFraud = crossFlaggedAsFraud;
     }
 
     public long getCrossNotFoundFraudSize() {
         return crossNotFoundFraudSize;
     }
 
-    public void setCrossFraudSize(long crossFraudSize) {
-        this.crossFraudSize = crossFraudSize;
+    public void setCrossNotFoundFraudSize(long crossNotFoundFraudSize) {
+        this.crossNotFoundFraudSize = crossNotFoundFraudSize;
     }
 
     public long getCrossFraudSize() {
         return crossFraudSize;
+    }
+
+    public void setCrossFraudSize(long crossFraudSize) {
+        this.crossFraudSize = crossFraudSize;
     }
 }
