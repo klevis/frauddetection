@@ -244,34 +244,34 @@ public class ResultsSummary {
 
     @Override
     public String toString() {
-        return "ResultsSummary{" +
-                "trainDataSize=" + trainDataSize +
-                ", timeInMilliseconds=" + timeInMilliseconds +
-                ", epsilon=" + epsilon +
-                ", mu=" + Arrays.toString(mu) +
-                ", sigma=" + Arrays.toString(sigma) +
-                ", testNotFoundFraudSize=" + testNotFoundFraudSize +
-                ", testFoundFraudSize=" + testFoundFraudSize +
-                ", testFlaggedAsFraud=" + testFlaggedAsFraud +
-                ", testFraudSize=" + testFraudSize +
-                ", testRegularSize=" + testRegularSize +
-                ", testTotalDataSize=" + testTotalDataSize +
-                ", successPercentage=" + successPercentage +
-                ", failPercentage=" + failPercentage +
-                ", totalRegularSize=" + totalRegularSize +
-                ", totalFraudSize=" + totalFraudSize +
-                ", totalNotFoundFraudSize=" + totalNotFoundFraudSize +
-                ", totalFoundFraudSize=" + totalFoundFraudSize +
-                ", totalFlaggedAsFraud=" + totalFlaggedAsFraud +
-                ", crossFoundFraudSize=" + crossFoundFraudSize +
-                ", crossFlaggedAsFraud=" + crossFlaggedAsFraud +
-                ", crossNotFoundFraudSize=" + crossNotFoundFraudSize +
-                ", crossFraudSize=" + crossFraudSize +
-                ", crossRegularSize=" + crossRegularSize +
-                ", crossTotalDataSize=" + crossTotalDataSize +
+        return "ResultsSummary{" + "\n" +
+                "trainDataSize=" + trainDataSize + "\n" +
+                ", timeInMilliseconds=" + timeInMilliseconds + "\n" +
+                ", epsilon=" + epsilon + "\n" +
+                ", mu=" + Arrays.toString(mu) + "\n" +
+                ", sigma=" + Arrays.toString(sigma) + "\n" +
+                ", testNotFoundFraudSize=" + testNotFoundFraudSize + "\n" +
+                ", testFoundFraudSize=" + testFoundFraudSize + "\n" +
+                ", testFlaggedAsFraud=" + testFlaggedAsFraud + "\n" +
+                ", testFraudSize=" + testFraudSize + "\n" +
+                ", testRegularSize=" + testRegularSize + "\n" +
+                ", testTotalDataSize=" + testTotalDataSize + "\n" +
+                ", successPercentage=" + successPercentage + "\n" +
+                ", failPercentage=" + failPercentage + "\n" +
+                ", totalRegularSize=" + totalRegularSize + "\n" +
+                ", totalFraudSize=" + totalFraudSize + "\n" +
+                ", totalNotFoundFraudSize=" + totalNotFoundFraudSize + "\n" +
+                ", totalFoundFraudSize=" + totalFoundFraudSize + "\n" +
+                ", totalFlaggedAsFraud=" + totalFlaggedAsFraud + "\n" +
+                ", crossFoundFraudSize=" + crossFoundFraudSize + "\n" +
+                ", crossFlaggedAsFraud=" + crossFlaggedAsFraud + "\n" +
+                ", crossNotFoundFraudSize=" + crossNotFoundFraudSize + "\n" +
+                ", crossFraudSize=" + crossFraudSize + "\n" +
+                ", crossRegularSize=" + crossRegularSize + "\n" +
+                ", crossTotalDataSize=" + crossTotalDataSize + "\n" +
                 ", id=" + id +
-                ", transactionType=" + transactionType +
-                ", algorithmConfiguration=" + algorithmConfiguration +
+                ", transactionType=" + transactionType + "\n" +
+                ", algorithmConfiguration=" + algorithmConfiguration + "\n" +
                 '}';
     }
 }

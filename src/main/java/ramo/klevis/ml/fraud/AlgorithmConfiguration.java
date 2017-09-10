@@ -224,20 +224,20 @@ public class AlgorithmConfiguration implements Serializable {
 
     @Override
     public String toString() {
-        return "AlgorithmConfiguration{" +
-                "skipFeatures=" + skipFeatures +
-                ", transactionTypesToExecute=" + transactionTypesToExecute +
-                ", fileName='" + fileName + '\'' +
-                ", hadoopApplicationPath='" + hadoopApplicationPath + '\'' +
+        return "AlgorithmConfiguration{" +"\n"+
+                "skipFeatures=" + skipFeatures +"\n"+
+                ", transactionTypesToExecute=" + transactionTypesToExecute +"\n"+
+                ", fileName='" + fileName + '\'' +"\n"+
+                ", hadoopApplicationPath='" + hadoopApplicationPath + '\'' +"\n"+
                 ", makeFeaturesMoreGaussian=" + makeFeaturesMoreGaussian +
-                ", runsTime=" + runsTime +
-                ", runsWith='" + runsWith + '\'' +
-                ", trainDataNormalPercentage=" + trainDataNormalPercentage +
-                ", trainDataFraudPercentage=" + trainDataFraudPercentage +
-                ", testDataFraudPercentage=" + testDataFraudPercentage +
-                ", testDataNormalPercentage=" + testDataNormalPercentage +
-                ", crossDataFraudPercentage=" + crossDataFraudPercentage +
-                ", crossDataNormalPercentage=" + crossDataNormalPercentage +
+                ", runsTime=" + runsTime +"\n"+
+                ", runsWith='" + runsWith + '\'' +"\n"+
+                ", trainDataNormalPercentage=" + trainDataNormalPercentage +"\n"+
+                ", trainDataFraudPercentage=" + trainDataFraudPercentage +"\n"+
+                ", testDataFraudPercentage=" + testDataFraudPercentage +"\n"+
+                ", testDataNormalPercentage=" + testDataNormalPercentage +"\n"+
+                ", crossDataFraudPercentage=" + crossDataFraudPercentage +"\n"+
+                ", crossDataNormalPercentage=" + crossDataNormalPercentage +"\n"+
                 '}';
     }
 }

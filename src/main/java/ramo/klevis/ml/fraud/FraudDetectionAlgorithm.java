@@ -266,7 +266,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         int index = 0;
         for (int i = 0; i < featureValues.length; i++) {
             if (!skipFeatures.contains(i)) {
-                finalFeatureValues[index] = featureValues[i];
+                finalFeatureValues[index++] = featureValues[i];
             }
         }
         return new LabeledPoint(labeledPoint.label(), Vectors.dense(finalFeatureValues));
