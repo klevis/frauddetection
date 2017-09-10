@@ -13,14 +13,11 @@ import org.apache.spark.mllib.stat.distribution.MultivariateGaussian;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -33,9 +30,8 @@ public class FraudDetectionAlgorithm implements Serializable {
 
     private final AlgorithmConfiguration algorithmConfiguration;
 
-    public FraudDetectionAlgorithm(AlgorithmConfiguration algorithmConfiguration) throws Exception {
+    public FraudDetectionAlgorithm(AlgorithmConfiguration algorithmConfiguration) {
         this.algorithmConfiguration = algorithmConfiguration;
-        setHadoopHomeEnvironmentVariable();
     }
 
     public List<ResultsSummary> executeAlgorithm() throws IOException {
@@ -113,17 +109,17 @@ public class FraudDetectionAlgorithm implements Serializable {
     }
 
     private void fillCrossDataResults(ResultsSummary resultsSummary, TestResult testResultFromCrossData) {
-        resultsSummary.setCrossFoundFraudSize(testResultFromCrossData.foundFrauds);
-        resultsSummary.setCrossFlaggedAsFraud(testResultFromCrossData.flaggedFrauds);
-        resultsSummary.setCrossNotFoundFraudSize(testResultFromCrossData.missedFrauds);
-        resultsSummary.setCrossFraudSize(testResultFromCrossData.totalFrauds);
+        resultsSummary.setCrossFoundFraudSize(testResultFromCrossData.getFoundFrauds());
+        resultsSummary.setCrossFlaggedAsFraud(testResultFromCrossData.getFlaggedFrauds());
+        resultsSummary.setCrossNotFoundFraudSize(testResultFromCrossData.getMissedFrauds());
+        resultsSummary.setCrossFraudSize(testResultFromCrossData.getTotalFrauds());
     }
 
     private void fillTestDataResults(ResultsSummary resultsSummary, TestResult testResultFromTestData) {
-        resultsSummary.setTestFoundFraudSize(testResultFromTestData.foundFrauds);
-        resultsSummary.setTestFlaggedAsFraud(testResultFromTestData.flaggedFrauds);
-        resultsSummary.setTestNotFoundFraudSize(testResultFromTestData.missedFrauds);
-        resultsSummary.setTestFraudSize(testResultFromTestData.totalFrauds);
+        resultsSummary.setTestFoundFraudSize(testResultFromTestData.getFoundFrauds());
+        resultsSummary.setTestFlaggedAsFraud(testResultFromTestData.getFlaggedFrauds());
+        resultsSummary.setTestNotFoundFraudSize(testResultFromTestData.getMissedFrauds());
+        resultsSummary.setTestFraudSize(testResultFromTestData.getTotalFrauds());
     }
 
     private JavaSparkContext createSparkContext() {
@@ -135,14 +131,14 @@ public class FraudDetectionAlgorithm implements Serializable {
         JavaRDD<LabeledPoint> paralleledTestData = sc.parallelize(testData);
         MultivariateGaussian multivariateGaussian = new MultivariateGaussian(summary.mean(), DenseMatrix.diag(summary.variance()));
         JavaRDD<Tuple<Double, Double>> testDataProbabilityDenseFunction = paralleledTestData.map(e -> new Tuple<>(e.label(), multivariateGaussian.logpdf(e.features()))).cache();
-        long totalFrauds = testDataProbabilityDenseFunction.filter(e -> e.label.equals(Double.valueOf(1))).count();
-        long foundFrauds = testDataProbabilityDenseFunction.filter(e -> e.value < bestEpsilon
-                && e.label.equals(Double.valueOf(1))).count();
+        long totalFrauds = testDataProbabilityDenseFunction.filter(e -> e.getLabel().equals(Double.valueOf(1))).count();
+        long foundFrauds = testDataProbabilityDenseFunction.filter(e -> e.getValue() < bestEpsilon
+                && e.getLabel().equals(Double.valueOf(1))).count();
 
-        long flaggedFrauds = testDataProbabilityDenseFunction.filter(e -> e.value < bestEpsilon).count();
+        long flaggedFrauds = testDataProbabilityDenseFunction.filter(e -> e.getValue() < bestEpsilon).count();
 
-        long missedFrauds = testDataProbabilityDenseFunction.filter(e -> e.value > bestEpsilon
-                && e.label.equals(Double.valueOf(1))).count();
+        long missedFrauds = testDataProbabilityDenseFunction.filter(e -> e.getValue() > bestEpsilon
+                && e.getLabel().equals(Double.valueOf(1))).count();
 
         return new TestResult(totalFrauds, foundFrauds, flaggedFrauds, missedFrauds);
     }
@@ -151,8 +147,8 @@ public class FraudDetectionAlgorithm implements Serializable {
         JavaRDD<LabeledPoint> paralleledCrossData = sc.parallelize(crossData);
         MultivariateGaussian multivariateGaussian = new MultivariateGaussian(summary.mean(), DenseMatrix.diag(summary.variance()));
         JavaRDD<Tuple<Double, Double>> trainDataProbabilityDenseFunction = paralleledCrossData.map(e -> new Tuple<>(e.label(), multivariateGaussian.logpdf(e.features())));
-        Double min = trainDataProbabilityDenseFunction.min(new SerializableTupleComparator()).value;
-        Double max = trainDataProbabilityDenseFunction.max(new SerializableTupleComparator()).value;
+        Double min = trainDataProbabilityDenseFunction.min(new SerializableTupleComparator()).getValue();
+        Double max = trainDataProbabilityDenseFunction.max(new SerializableTupleComparator()).getValue();
         Double step = (max - min) / 1000d;
         List<Double> epsilons = new ArrayList<>();
         for (double epsilon = min; epsilon < max; epsilon = epsilon + step) {
@@ -160,9 +156,9 @@ public class FraudDetectionAlgorithm implements Serializable {
         }
         List<Tuple<Double, Double>> trainDataProbabilityDenseFunctionList = trainDataProbabilityDenseFunction.collect();
         return sc.parallelize(epsilons).reduce((e1, e2) -> {
-                    double f1 = getF1(trainDataProbabilityDenseFunctionList, e1);
-                    double f2 = getF1(trainDataProbabilityDenseFunctionList, e2);
-                    if (f1 > f2) {
+                    double f11 = getF1(trainDataProbabilityDenseFunctionList, e1);
+                    double f12 = getF1(trainDataProbabilityDenseFunctionList, e2);
+                    if (f11 > f12) {
                         return e1;
                     } else {
                         return e2;
@@ -173,16 +169,16 @@ public class FraudDetectionAlgorithm implements Serializable {
 
     private double getF1(List<Tuple<Double, Double>> trainDataProbabilityDenseFunctionList, Double epsilon) {
         long successfullyDetectedFrauds = trainDataProbabilityDenseFunctionList.stream()
-                .filter(e -> e.value <= epsilon
-                        && e.label.equals(Double.valueOf(1))).count();
+                .filter(e -> e.getValue() <= epsilon
+                        && e.getLabel().equals(Double.valueOf(1))).count();
 
         long wronglyFlaggedAsFrauds = trainDataProbabilityDenseFunctionList.stream()
-                .filter(e -> e.value <= epsilon
-                        && e.label.equals(Double.valueOf(0))).count();
+                .filter(e -> e.getValue() <= epsilon
+                        && e.getLabel().equals(Double.valueOf(0))).count();
 
         long missedFrauds = trainDataProbabilityDenseFunctionList.stream()
-                .filter(e -> e.value > epsilon
-                        && e.label.equals(Double.valueOf(1))).count();
+                .filter(e -> e.getValue() > epsilon
+                        && e.getLabel().equals(Double.valueOf(1))).count();
         double prec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + wronglyFlaggedAsFrauds);
 
         double rec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + missedFrauds);
@@ -272,51 +268,10 @@ public class FraudDetectionAlgorithm implements Serializable {
         return new LabeledPoint(labeledPoint.label(), Vectors.dense(finalFeatureValues));
     }
 
-    private class Tuple<F extends Serializable, S extends Serializable> implements Serializable {
-        private F label;
-        private S value;
-
-        public Tuple(F label, S value) {
-
-            this.label = label;
-            this.value = value;
-        }
-    }
-
     private class SerializableTupleComparator implements Comparator<Tuple<Double, Double>>, Serializable {
         @Override
         public int compare(Tuple<Double, Double> o1, Tuple<Double, Double> o2) {
-            return o1.value.compareTo(o2.value);
-        }
-    }
-
-    private void setHadoopHomeEnvironmentVariable() throws Exception {
-        HashMap<String, String> hadoopEnvSetUp = new HashMap<>();
-        hadoopEnvSetUp.put("HADOOP_HOME", new File(algorithmConfiguration.getHadoopApplicationPath()).getAbsolutePath());
-        Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-        Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-        theEnvironmentField.setAccessible(true);
-        Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
-        env.clear();
-        env.putAll(hadoopEnvSetUp);
-        Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-        theCaseInsensitiveEnvironmentField.setAccessible(true);
-        Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
-        cienv.clear();
-        cienv.putAll(hadoopEnvSetUp);
-    }
-
-    private class TestResult implements Serializable {
-        private final long totalFrauds;
-        private final long foundFrauds;
-        private final long flaggedFrauds;
-        private final long missedFrauds;
-
-        public TestResult(long totalFrauds, long foundFrauds, long flaggedFrauds, long missedFrauds) {
-            this.totalFrauds = totalFrauds;
-            this.foundFrauds = foundFrauds;
-            this.flaggedFrauds = flaggedFrauds;
-            this.missedFrauds = missedFrauds;
+            return o1.getValue().compareTo(o2.getValue());
         }
     }
 }

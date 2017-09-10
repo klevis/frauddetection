@@ -3,11 +3,14 @@ package ramo.klevis.ml.fraud;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-import static java.lang.Boolean.*;
-import static java.lang.Integer.*;
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
 
 /**
  * Created by klevis.ramo on 9/10/2017.
@@ -24,6 +27,7 @@ public class Run {
 
     public static void main(String[] args) throws Exception {
         AlgorithmConfiguration algorithmConfiguration = getAlgorithmConfigurationFromProperties();
+        setHadoopHomeEnvironmentVariable(algorithmConfiguration);
         FraudDetectionAlgorithm fraudDetectionAlgorithm = new FraudDetectionAlgorithm(algorithmConfiguration);
         List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
         for (ResultsSummary resultsSummary : resultsSummaries) {
@@ -50,5 +54,21 @@ public class Run {
                 .withCrossDataNormalPercentage(parseInt(properties.getProperty("crossDataNormalPercentage")))
                 .createAlgorithmConfiguration();
         return algorithmConfiguration;
+    }
+
+    private static void setHadoopHomeEnvironmentVariable(AlgorithmConfiguration algorithmConfiguration) throws Exception {
+        HashMap<String, String> hadoopEnvSetUp = new HashMap<>();
+        hadoopEnvSetUp.put("HADOOP_HOME", new File(algorithmConfiguration.getHadoopApplicationPath()).getAbsolutePath());
+        Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
+        Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
+        theEnvironmentField.setAccessible(true);
+        Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
+        env.clear();
+        env.putAll(hadoopEnvSetUp);
+        Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
+        theCaseInsensitiveEnvironmentField.setAccessible(true);
+        Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
+        cienv.clear();
+        cienv.putAll(hadoopEnvSetUp);
     }
 }
