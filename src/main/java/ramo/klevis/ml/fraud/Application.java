@@ -59,15 +59,14 @@ public class Application implements Serializable {
         JavaSparkContext sparkContext = application.createSparkContext();
 
         JavaRDD<LabeledPoint> data = application.loadDataOnlyFirsTime(sparkContext);
-        JavaRDD<LabeledPoint> all = application.filterRequestedDataType(data, ALL_TYPES, sparkContext);
 //        JavaRDD<LabeledPoint> paymentType = application.filterRequestedDataType(data, PAYMENT_TYPE, sparkContext);
-        JavaRDD<LabeledPoint> transferType = application.filterRequestedDataType(data, TRANSFER_TYPE, sparkContext);
+//        JavaRDD<LabeledPoint> transferType = application.filterRequestedDataType(data, TRANSFER_TYPE, sparkContext);
 //        JavaRDD<LabeledPoint> cashOutType = application.filterRequestedDataType(data, CASH_OUT_TYPE, sparkContext);
 //        JavaRDD<LabeledPoint> debitType = application.filterRequestedDataType(data, DEBIT_TYPE, sparkContext);
 //        JavaRDD<LabeledPoint> cashInType = application.filterRequestedDataType(data, CASH_IN_TYPE, sparkContext);
 
 //        application.runAnomalyDetection(sparkContext, paymentType);
-        application.runAnomalyDetection(sparkContext, transferType);
+//        application.runAnomalyDetection(sparkContext, transferType);
 //        application.runAnomalyDetection(sparkContext, cashOutType);
 //        application.runAnomalyDetection(sparkContext, debitType);
 //        application.runAnomalyDetection(sparkContext, cashInType);
@@ -79,7 +78,8 @@ public class Application implements Serializable {
         totalMissedFrauds = 0;
         totalFrauds = 0;
         System.out.println("TYPE ALL");
-//        application.runAnomalyDetection(sparkContext, all);
+        JavaRDD<LabeledPoint> all = application.filterRequestedDataType(data, ALL_TYPES, sparkContext);
+        application.runAnomalyDetection(sparkContext, all);
         System.out.println("totalFoundFrauds = " + totalFoundFrauds);
         System.out.println("totalMissedFrauds = " + totalMissedFrauds);
         System.out.println("totalFrauds = " + totalFrauds);
@@ -159,29 +159,38 @@ public class Application implements Serializable {
         }
         List<Tuple<Double, Double>> trainDataProbabilityDenseFunctionList = trainDataProbabilityDenseFunction.collect();
         JavaRDD<Double> parallelizeEpsilons = sc.parallelize(epsilons);
-        Tuple<Double, Double> maxEpsilonAndF1 = parallelizeEpsilons.map(epsilon -> {
-                    long successfullyDetectedFrauds = trainDataProbabilityDenseFunctionList.stream()
-                            .filter(e -> e.value <= epsilon
-                                    && e.label.equals(Double.valueOf(1))).count();
-
-                    long wronglyFlaggedAsFrauds = trainDataProbabilityDenseFunctionList.stream()
-                            .filter(e -> e.value <= epsilon
-                                    && e.label.equals(Double.valueOf(0))).count();
-
-                    long missedFrauds = trainDataProbabilityDenseFunctionList.stream()
-                            .filter(e -> e.value > epsilon
-                                    && e.label.equals(Double.valueOf(1))).count();
-                    double prec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + wronglyFlaggedAsFrauds);
-
-                    double rec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + missedFrauds);
-                    double f1 = 2 * prec * rec / (prec + rec);
-                    return new Tuple<>(epsilon, f1);
+        Double bestEpsilon = parallelizeEpsilons.reduce((e1, e2) -> {
+                    double f1 = getF1(trainDataProbabilityDenseFunctionList, e1);
+                    double f2 = getF1(trainDataProbabilityDenseFunctionList, e2);
+                    if (f1 > f2) {
+                        return e1;
+                    } else {
+                        return e2;
+                    }
                 }
-        ).max(new MaxComparator());
+        );
 
-        System.out.println("bestEpsilon = " + maxEpsilonAndF1.label);
-        return maxEpsilonAndF1.label;
+        System.out.println("bestEpsilon = " + bestEpsilon);
+        return bestEpsilon;
 
+    }
+
+    private double getF1(List<Tuple<Double, Double>> trainDataProbabilityDenseFunctionList, Double epsilon) {
+        long successfullyDetectedFrauds = trainDataProbabilityDenseFunctionList.stream()
+                .filter(e -> e.value <= epsilon
+                        && e.label.equals(Double.valueOf(1))).count();
+
+        long wronglyFlaggedAsFrauds = trainDataProbabilityDenseFunctionList.stream()
+                .filter(e -> e.value <= epsilon
+                        && e.label.equals(Double.valueOf(0))).count();
+
+        long missedFrauds = trainDataProbabilityDenseFunctionList.stream()
+                .filter(e -> e.value > epsilon
+                        && e.label.equals(Double.valueOf(1))).count();
+        double prec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + wronglyFlaggedAsFrauds);
+
+        double rec = (double) successfullyDetectedFrauds / (double) (successfullyDetectedFrauds + missedFrauds);
+        return 2 * (prec * rec) / (prec + rec);
     }
 
     private List<LabeledPoint> generateTrainData(List<LabeledPoint> regularData, int trainingDataSize) {
