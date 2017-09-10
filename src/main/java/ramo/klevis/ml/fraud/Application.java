@@ -1,15 +1,15 @@
 package ramo.klevis.ml.fraud;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.linalg.DenseMatrix;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
+import org.apache.spark.mllib.stat.distribution.MultivariateGaussian;
 import org.apache.spark.mllib.stat.MultivariateStatisticalSummary;
 import org.apache.spark.mllib.stat.Statistics;
-import org.apache.spark.mllib.stat.distribution.MultivariateGaussian;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,13 +35,39 @@ public class Application {
     private static long totalFoundFrauds = 0;
     private static long totalMissedFrauds = 0;
     private static long totalFrauds = 0;
+    private static final List<LabeledPoint> data = new ArrayList<>();
+    private static int[] skipCol = {2};
+
 
     public static void main(String[] args) throws IOException {
+        JavaSparkContext javaSparkContext = getJavaSparkContext();
 
+//        System.out.println("TYPE " + 1);
+//        runAnomalyDetection(1d, javaSparkContext);
+//        System.out.println("TYPE " + 2);
+//        runAnomalyDetection(2d, javaSparkContext);
+//        System.out.println("TYPE " + 3);
+//        runAnomalyDetection(3d, javaSparkContext);
+//        System.out.println("TYPE " + 4);
+//        runAnomalyDetection(4d, javaSparkContext);
+//        System.out.println("TYPE " + 5);
+//        runAnomalyDetection(5d, javaSparkContext);
+        System.out.println("totalFoundFrauds = " + totalFoundFrauds);
+        System.out.println("totalMissedFrauds = " + totalMissedFrauds);
+        System.out.println("totalFrauds = " + totalFrauds);
+        totalFoundFrauds = 0;
+        totalMissedFrauds = 0;
+        totalFrauds = 0;
+        System.out.println("TYPE ALL");
+        runAnomalyDetection(0d, javaSparkContext);
+        System.out.println("totalFoundFrauds = " + totalFoundFrauds);
+        System.out.println("totalMissedFrauds = " + totalMissedFrauds);
+        System.out.println("totalFrauds = " + totalFrauds);
 
-        SparkConf conf = new SparkConf().setAppName("Finance Fraud Detection").setMaster("local");
-        JavaSparkContext sc = new JavaSparkContext(conf);
-        List<LabeledPoint> data = loadData();
+    }
+
+    private static void runAnomalyDetection(double type, JavaSparkContext sc) throws IOException {
+        List<LabeledPoint> data = loadData(type);
 
         List<LabeledPoint> regularData = data.stream().parallel().filter(e -> e.label() == (0d)).collect(toList());
         List<LabeledPoint> anomalies = data.stream().parallel().filter(e -> e.label() == (1d)).collect(toList());
@@ -67,7 +93,11 @@ public class Application {
 
         test(sc, testData, summary, bestEpsilon);
         test(sc, crossData, summary, bestEpsilon);
+    }
 
+    private static JavaSparkContext getJavaSparkContext() {
+        SparkConf conf = new SparkConf().setAppName("Finance Fraud Detection").setMaster("local");
+        return new JavaSparkContext(conf);
     }
 
     private static void test(JavaSparkContext sc, List<LabeledPoint> testData, MultivariateStatisticalSummary summary, Double bestEpsilon) {
@@ -87,7 +117,7 @@ public class Application {
 
         totalFoundFrauds = totalFoundFrauds + foundFrauds;
         totalMissedFrauds = totalMissedFrauds + missedFrauds;
-        System.out.println("foundFrauds = " + foundFrauds + " from total " + totalFrauds + " -> " + (((double)foundFrauds /(double) totalFrauds) * 100));
+        System.out.println("foundFrauds = " + foundFrauds + " from total " + totalFrauds + " -> " + (((double) foundFrauds / (double) totalFrauds) * 100));
         System.out.println("flaggedFrauds = " + flaggedFrauds);
         System.out.println("missedFrauds = " + missedFrauds);
     }
@@ -170,26 +200,54 @@ public class Application {
     }
 
 
-    private static List<LabeledPoint> loadData() throws IOException {
-        File file = new File("data/" + DATA_CSV);
-        FileReader in = new FileReader(file);
-        BufferedReader br = new BufferedReader(in);
-        String line;
-        List<LabeledPoint> data = new ArrayList<LabeledPoint>();
-        //skip first line
-        br.readLine();
-        while ((line = br.readLine()) != null) {
-            double[] as = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
-//            double[] power = {0.5, 0.05, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
-//            for (int i = 0; i < as.length; i++) {
-//                as[i] = Math.pow(as[i], power[i]);
-//            }
-            double[] doubles1 = Arrays.copyOfRange(as, 0, 1);
-            double[] doubles2 = Arrays.copyOfRange(as, 2, 9);
-//            if (as[1] == 2d)
-                data.add(new LabeledPoint(as[9], Vectors.dense(ArrayUtils.addAll(doubles1, doubles2))));
+    private static List<LabeledPoint> loadData(double type) throws IOException {
+        loadDataOnlyOnce();
+        if (type == 0d) {
+            //load all
+            return data.stream().parallel().map(e -> skipFeatures(e)).collect(toList());
+        } else {
+            return data.stream().parallel().filter(e -> e.features().apply(1) == type).map(e -> skipFeatures(e)).collect(toList());
         }
-        return data;
+    }
+
+    private static void loadDataOnlyOnce() throws IOException {
+        if (data.isEmpty()) {
+            File file = new File("data/" + DATA_CSV);
+            FileReader in = new FileReader(file);
+            BufferedReader br = new BufferedReader(in);
+            String line;
+            //skip first line
+            br.readLine();
+            while ((line = br.readLine()) != null) {
+                double[] as = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
+                double[] power = {0.5, 1, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
+                for (int i = 0; i < as.length; i++) {
+                    as[i] = Math.pow(as[i], power[i]);
+                }
+                double[] doubles = Arrays.copyOfRange(as, 0, 9);//skip 9 and 10 for frauds
+                data.add(new LabeledPoint(as[9], Vectors.dense(doubles)));
+
+            }
+        }
+    }
+
+    private static LabeledPoint skipFeatures(LabeledPoint e) {
+        double[] as = e.features().toArray();
+        double[] dest = new double[as.length - skipCol.length];
+        int index = 0;
+        for (int i = 0; i < as.length; i++) {
+            boolean skip = false;
+            for (int j = 0; j < skipCol.length; j++) {
+                if (i == skipCol[j]) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (!skip) {
+                dest[index++] = as[i];
+            }
+        }
+        return new LabeledPoint(e.label(), Vectors.dense(dest));
     }
 
     static class Tuple<F, S> implements Serializable {
