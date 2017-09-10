@@ -67,7 +67,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         resultsSummary.setTotalFraudSize(anomaliesList.size());
 
         //choose 60% as train data with no anomalies
-        int trainingDataSize = (int) (algorithmConfiguration.getTrainDataNormalPercentage()/100d * regularList.size());
+        int trainingDataSize = (int) (algorithmConfiguration.getTrainDataNormalPercentage() / 100d * regularList.size());
         List<LabeledPoint> trainData = generateTrainData(regularList, trainingDataSize);
         List<LabeledPoint> crossData = generateCrossData(regularList, anomaliesList, trainingDataSize, resultsSummary);
         List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize, resultsSummary);
@@ -191,12 +191,15 @@ public class FraudDetectionAlgorithm implements Serializable {
     }
 
     private List<LabeledPoint> generateTestData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize, ResultsSummary resultsSummary) {
-        int crossRegularDataSize = (int) ((regularData.size() - trainingDataSize) * 0.5);
-        //choose the rest as testAlgorithmWithData validation data with no anomalies
+        int crossRegularDataSize = (int) ((regularData.size()) * (algorithmConfiguration.getCrossDataFraudPercentage() / 100d));
+        int crossAnomaliesSize = (int) (anomalies.size() * (algorithmConfiguration.getCrossDataFraudPercentage() / 100d));
         List<LabeledPoint> testDataRegular = regularData.stream().parallel()
                 .skip(trainingDataSize + crossRegularDataSize)
                 .limit(regularData.size() - trainingDataSize + crossRegularDataSize).collect(toList());
-        List<LabeledPoint> testAnomalies = anomalies.stream().skip(anomalies.size() / 2).limit(anomalies.size() - (anomalies.size() / 2)).collect(toList());
+        List<LabeledPoint> testAnomalies = anomalies.stream()
+                .skip(crossAnomaliesSize)
+                .limit(anomalies.size() - crossAnomaliesSize)
+                .collect(toList());
         List<LabeledPoint> testData = new ArrayList<>();
         testData.addAll(testDataRegular);
         testData.addAll(testAnomalies);
@@ -207,9 +210,14 @@ public class FraudDetectionAlgorithm implements Serializable {
 
     private ArrayList<LabeledPoint> generateCrossData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize, ResultsSummary resultsSummary) {
         //choose 20% as cross validation data with no anomalies
-        int crossRegularDataSize = (int) ((regularData.size() - trainingDataSize) * 0.5);
-        List<LabeledPoint> crossDataRegular = regularData.stream().parallel().skip(trainingDataSize).limit(crossRegularDataSize).collect(toList());
-        List<LabeledPoint> crossDataAnomalies = anomalies.stream().limit(anomalies.size() / 2).collect(toList());
+        int crossRegularDataSize = (int) ((regularData.size()) * (algorithmConfiguration.getCrossDataNormalPercentage() / 100d));
+        List<LabeledPoint> crossDataRegular = regularData.stream().parallel()
+                .skip(trainingDataSize)
+                .limit(crossRegularDataSize)
+                .collect(toList());
+        List<LabeledPoint> crossDataAnomalies = anomalies.stream()
+                .limit((int) (anomalies.size() * (algorithmConfiguration.getCrossDataFraudPercentage() / 100d)))
+                .collect(toList());
         ArrayList<LabeledPoint> crossData = new ArrayList<>();
         crossData.addAll(crossDataRegular);
         crossData.addAll(crossDataAnomalies);
@@ -294,7 +302,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         cienv.putAll(hadoopEnvSetUp);
     }
 
-    private class TestResult implements Serializable{
+    private class TestResult implements Serializable {
         private final long totalFrauds;
         private final long foundFrauds;
         private final long flaggedFrauds;
