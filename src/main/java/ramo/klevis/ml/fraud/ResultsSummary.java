@@ -15,15 +15,20 @@ public class ResultsSummary {
     private long timeInMilliseconds;
 
     private double epsilon;
-    private double mu;
-    private double sigma;
+    private double[] mu;
+    private double[] sigma;
 
-    private long notFoundFraudSize;
-    private long foundFraudSize;
-    private long flaggedAsFraud;
+    private long testNotFoundFraudSize;
+    private long testFoundFraudSize;
+    private long testFlaggedAsFraud;
+    private long testFraudSize;
 
     private double successPercentage;
     private double failPercentage;
+    private long crossFoundFraudSize;
+    private long crossFlaggedAsFraud;
+    private long crossNotFoundFraudSize;
+    private long crossFraudSize;
 
     public long getRegularSize() {
         return regularSize;
@@ -81,44 +86,44 @@ public class ResultsSummary {
         this.epsilon = epsilon;
     }
 
-    public double getMu() {
+    public double[] getMu() {
         return mu;
     }
 
-    public void setMu(double mu) {
+    public void setMean(double[] mu) {
         this.mu = mu;
     }
 
-    public double getSigma() {
+    public double[] getSigma() {
         return sigma;
     }
 
-    public void setSigma(double sigma) {
+    public void setSigma(double[] sigma) {
         this.sigma = sigma;
     }
 
-    public long getNotFoundFraudSize() {
-        return notFoundFraudSize;
+    public long getTestNotFoundFraudSize() {
+        return testNotFoundFraudSize;
     }
 
-    public void setNotFoundFraudSize(long notFoundFraudSize) {
-        this.notFoundFraudSize = notFoundFraudSize;
+    public void setTestNotFoundFraudSize(long notFoundFraudSize) {
+        this.testNotFoundFraudSize = notFoundFraudSize;
     }
 
-    public long getFoundFraudSize() {
-        return foundFraudSize;
+    public long getTestFoundFraudSize() {
+        return testFoundFraudSize;
     }
 
-    public void setFoundFraudSize(long foundFraudSize) {
-        this.foundFraudSize = foundFraudSize;
+    public void setTestFoundFraudSize(long foundFraudSize) {
+        this.testFoundFraudSize = foundFraudSize;
     }
 
-    public long getFlaggedAsFraud() {
-        return flaggedAsFraud;
+    public long getTestFlaggedAsFraud() {
+        return testFlaggedAsFraud;
     }
 
-    public void setFlaggedAsFraud(long flaggedAsFraud) {
-        this.flaggedAsFraud = flaggedAsFraud;
+    public void setTestFlaggedAsFraud(long flaggedAsFraud) {
+        this.testFlaggedAsFraud = flaggedAsFraud;
     }
 
     public double getSuccessPercentage() {
@@ -135,5 +140,45 @@ public class ResultsSummary {
 
     public void setFailPercentage(double failPercentage) {
         this.failPercentage = failPercentage;
+    }
+
+    public void setTestFraudSize(long testFraudSize) {
+        this.testFraudSize = testFraudSize;
+    }
+
+    public long getTestFraudSize() {
+        return testFraudSize;
+    }
+
+    public void setCrossFoundFraudSize(long crossFoundFraudSize) {
+        this.crossFoundFraudSize = crossFoundFraudSize;
+    }
+
+    public long getCrossFoundFraudSize() {
+        return crossFoundFraudSize;
+    }
+
+    public void setCrossFlaggedAsFraud(long crossFlaggedAsFraud) {
+        this.crossFlaggedAsFraud = crossFlaggedAsFraud;
+    }
+
+    public long getCrossFlaggedAsFraud() {
+        return crossFlaggedAsFraud;
+    }
+
+    public void setCrossNotFoundFraudSize(long crossNotFoundFraudSize) {
+        this.crossNotFoundFraudSize = crossNotFoundFraudSize;
+    }
+
+    public long getCrossNotFoundFraudSize() {
+        return crossNotFoundFraudSize;
+    }
+
+    public void setCrossFraudSize(long crossFraudSize) {
+        this.crossFraudSize = crossFraudSize;
+    }
+
+    public long getCrossFraudSize() {
+        return crossFraudSize;
     }
 }

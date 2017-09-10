@@ -30,9 +30,6 @@ import static java.util.stream.Collectors.toList;
  */
 public class FraudDetectionAlgorithm implements Serializable {
 
-    private static long totalFoundFrauds = 0;
-    private static long totalMissedFrauds = 0;
-    private static long totalFrauds = 0;
 
     private final AlgorithmConfiguration algorithmConfiguration;
 
@@ -55,16 +52,19 @@ public class FraudDetectionAlgorithm implements Serializable {
 
     private void runAnomalyDetection(JavaSparkContext sc, JavaRDD<LabeledPoint> filteredDataByType) throws IOException {
 
+        ResultsSummary resultsSummary = new ResultsSummary();
+
         JavaRDD<LabeledPoint> regularData = filteredDataByType.filter(e -> e.label() == (0d));
         JavaRDD<LabeledPoint> anomalies = filteredDataByType.filter(e -> e.label() == (1d));
         List<LabeledPoint> regularList = new ArrayList<>(regularData.collect());
         List<LabeledPoint> anomaliesList = new ArrayList<>(anomalies.collect());
-        totalFrauds = totalFrauds + anomaliesList.size();
-        System.out.println("anomalies.size() = " + anomaliesList.size());
-//        randomize anomalies
+        //randomize anomalies
         Collections.shuffle(anomaliesList);
         //randomize regular
         Collections.shuffle(regularList);
+
+        resultsSummary.setRegularSize(regularList.size());
+        resultsSummary.setFraudSize(anomaliesList.size());
 
         //choose 60% as train data with no anomalies
         int trainingDataSize = (int) (0.6 * regularList.size());
@@ -72,19 +72,30 @@ public class FraudDetectionAlgorithm implements Serializable {
         List<LabeledPoint> crossData = generateCrossData(regularList, anomaliesList, trainingDataSize);
         List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize);
 
-        System.out.println("testData.size() = " + testData.size());
-        System.out.println("crossData = " + crossData.size());
-        System.out.println("trainData = " + trainData.size());
+        resultsSummary.setTrainDataSize(trainData.size());
+        resultsSummary.setCrossDataSize(crossData.size());
+        resultsSummary.setTestDataSize(testData.size());
 
         JavaRDD<LabeledPoint> paralleledTrainData = sc.parallelize(trainData);
         MultivariateStatisticalSummary summary = Statistics.colStats(paralleledTrainData.map(e -> e.features()).rdd());
-        System.out.println("Mean mu" + summary.mean());  // a dense vector containing the mean value for each column
-        System.out.println("Sigma " + summary.variance());
+
+        resultsSummary.setMean(summary.mean().toArray());
+        resultsSummary.setSigma(summary.variance().toArray());
 
         Double bestEpsilon = findBestEpsilon(sc, crossData, summary);
+        resultsSummary.setEpsilon(bestEpsilon);
 
-        test(sc, testData, summary, bestEpsilon);
-        test(sc, crossData, summary, bestEpsilon);
+        TestResult testResultFromTestData = testAlgorithmWithData(sc, testData, summary, bestEpsilon);
+        resultsSummary.setTestFoundFraudSize(testResultFromTestData.foundFrauds);
+        resultsSummary.setTestFlaggedAsFraud(testResultFromTestData.flaggedFrauds);
+        resultsSummary.setTestNotFoundFraudSize(testResultFromTestData.missedFrauds);
+        resultsSummary.setTestFraudSize(testResultFromTestData.totalFrauds);
+
+        TestResult testResultFromCrossData = testAlgorithmWithData(sc, crossData, summary, bestEpsilon);
+        resultsSummary.setCrossFoundFraudSize(testResultFromCrossData.foundFrauds);
+        resultsSummary.setCrossFlaggedAsFraud(testResultFromCrossData.flaggedFrauds);
+        resultsSummary.setCrossNotFoundFraudSize(testResultFromCrossData.missedFrauds);
+        resultsSummary.setCrossFraudSize(testResultFromCrossData.totalFrauds);
     }
 
     private JavaSparkContext createSparkContext() {
@@ -92,7 +103,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         return new JavaSparkContext(conf);
     }
 
-    private void test(JavaSparkContext sc, List<LabeledPoint> testData, MultivariateStatisticalSummary summary, Double bestEpsilon) {
+    private TestResult testAlgorithmWithData(JavaSparkContext sc, List<LabeledPoint> testData, MultivariateStatisticalSummary summary, Double bestEpsilon) {
         JavaRDD<LabeledPoint> paralleledTestData = sc.parallelize(testData);
         MultivariateGaussian multivariateGaussian = new MultivariateGaussian(summary.mean(), DenseMatrix.diag(summary.variance()));
         JavaRDD<Tuple<Double, Double>> testDataProbabilityDenseFunction = paralleledTestData.map(e -> new Tuple<>(e.label(), multivariateGaussian.logpdf(e.features()))).cache();
@@ -105,11 +116,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         long missedFrauds = testDataProbabilityDenseFunction.filter(e -> e.value > bestEpsilon
                 && e.label.equals(Double.valueOf(1))).count();
 
-        totalFoundFrauds = totalFoundFrauds + foundFrauds;
-        totalMissedFrauds = totalMissedFrauds + missedFrauds;
-        System.out.println("foundFrauds = " + foundFrauds + " from total " + totalFrauds + " -> " + (((double) foundFrauds / (double) totalFrauds) * 100));
-        System.out.println("flaggedFrauds = " + flaggedFrauds);
-        System.out.println("missedFrauds = " + missedFrauds);
+        return new TestResult(totalFrauds, foundFrauds, flaggedFrauds, missedFrauds);
     }
 
     private Double findBestEpsilon(JavaSparkContext sc, List<LabeledPoint> crossData, MultivariateStatisticalSummary summary) {
@@ -124,8 +131,7 @@ public class FraudDetectionAlgorithm implements Serializable {
             epsilons.add(epsilon);
         }
         List<Tuple<Double, Double>> trainDataProbabilityDenseFunctionList = trainDataProbabilityDenseFunction.collect();
-        JavaRDD<Double> parallelizeEpsilons = sc.parallelize(epsilons);
-        Double bestEpsilon = parallelizeEpsilons.reduce((e1, e2) -> {
+        Double bestEpsilon = sc.parallelize(epsilons).reduce((e1, e2) -> {
                     double f1 = getF1(trainDataProbabilityDenseFunctionList, e1);
                     double f2 = getF1(trainDataProbabilityDenseFunctionList, e2);
                     if (f1 > f2) {
@@ -135,8 +141,6 @@ public class FraudDetectionAlgorithm implements Serializable {
                     }
                 }
         );
-
-        System.out.println("bestEpsilon = " + bestEpsilon);
         return bestEpsilon;
 
     }
@@ -165,7 +169,7 @@ public class FraudDetectionAlgorithm implements Serializable {
 
     private List<LabeledPoint> generateTestData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize) {
         int crossRegularDataSize = (int) ((regularData.size() - trainingDataSize) * 0.5);
-        //choose the rest as test validation data with no anomalies
+        //choose the rest as testAlgorithmWithData validation data with no anomalies
         List<LabeledPoint> testDataRegular = regularData.stream().parallel()
                 .skip(trainingDataSize + crossRegularDataSize)
                 .limit(regularData.size() - trainingDataSize + crossRegularDataSize).collect(toList());
@@ -268,5 +272,19 @@ public class FraudDetectionAlgorithm implements Serializable {
         Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
         cienv.clear();
         cienv.putAll(hadoopEnvSetUp);
+    }
+
+    private class TestResult {
+        private final long totalFrauds;
+        private final long foundFrauds;
+        private final long flaggedFrauds;
+        private final long missedFrauds;
+
+        public TestResult(long totalFrauds, long foundFrauds, long flaggedFrauds, long missedFrauds) {
+            this.totalFrauds = totalFrauds;
+            this.foundFrauds = foundFrauds;
+            this.flaggedFrauds = flaggedFrauds;
+            this.missedFrauds = missedFrauds;
+        }
     }
 }
