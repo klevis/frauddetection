@@ -3,7 +3,6 @@ package ramo.klevis.ml.fraud;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.linalg.DenseMatrix;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
@@ -29,61 +28,28 @@ import static java.util.stream.Collectors.toList;
 /**
  * Created by klevis.ramo on 9/5/2017.
  */
-public class Application implements Serializable {
-
-
-    protected final String FILE_NAME = "allData.csv";
-
-    private final String HADOOP_HOME = "HADOOP_HOME";
-    private final String HADOOP_APPLICATION_PATH = "winutils-master/hadoop-2.8.1";
-
-    private static final double PAYMENT_TYPE = 1d;
-    private static final double TRANSFER_TYPE = 2d;
-    private static final double CASH_OUT_TYPE = 3d;
-    private static final double DEBIT_TYPE = 4d;
-    private static final double CASH_IN_TYPE = 5d;
-    private static final double ALL_TYPES = 0d;
-
-    private int[] SKIP_FEATURES = {2};
+public class FraudDetectionAlgorithm implements Serializable {
 
     private static long totalFoundFrauds = 0;
     private static long totalMissedFrauds = 0;
     private static long totalFrauds = 0;
 
-    public static void main(String[] args) throws Exception {
+    private final AlgorithmConfiguration algorithmConfiguration;
 
-        long start = System.currentTimeMillis();
-        Application application = new Application();
-        application.setHadoopHomeEnvironmentVariable();
+    public FraudDetectionAlgorithm(AlgorithmConfiguration algorithmConfiguration) throws Exception {
+        this.algorithmConfiguration = algorithmConfiguration;
+        setHadoopHomeEnvironmentVariable();
+    }
 
-        JavaSparkContext sparkContext = application.createSparkContext();
-
-        JavaRDD<LabeledPoint> data = application.loadDataOnlyFirsTime(sparkContext);
-//        JavaRDD<LabeledPoint> paymentType = application.filterRequestedDataType(data, PAYMENT_TYPE, sparkContext);
-//        JavaRDD<LabeledPoint> transferType = application.filterRequestedDataType(data, TRANSFER_TYPE, sparkContext);
-//        JavaRDD<LabeledPoint> cashOutType = application.filterRequestedDataType(data, CASH_OUT_TYPE, sparkContext);
-//        JavaRDD<LabeledPoint> debitType = application.filterRequestedDataType(data, DEBIT_TYPE, sparkContext);
-//        JavaRDD<LabeledPoint> cashInType = application.filterRequestedDataType(data, CASH_IN_TYPE, sparkContext);
-
-//        application.runAnomalyDetection(sparkContext, paymentType);
-//        application.runAnomalyDetection(sparkContext, transferType);
-//        application.runAnomalyDetection(sparkContext, cashOutType);
-//        application.runAnomalyDetection(sparkContext, debitType);
-//        application.runAnomalyDetection(sparkContext, cashInType);
-
-        System.out.println("totalFoundFrauds = " + totalFoundFrauds);
-        System.out.println("totalMissedFrauds = " + totalMissedFrauds);
-        System.out.println("totalFrauds = " + totalFrauds);
-        totalFoundFrauds = 0;
-        totalMissedFrauds = 0;
-        totalFrauds = 0;
-        System.out.println("TYPE ALL");
-        JavaRDD<LabeledPoint> all = application.filterRequestedDataType(data, ALL_TYPES, sparkContext);
-        application.runAnomalyDetection(sparkContext, all);
-        System.out.println("totalFoundFrauds = " + totalFoundFrauds);
-        System.out.println("totalMissedFrauds = " + totalMissedFrauds);
-        System.out.println("totalFrauds = " + totalFrauds);
-        System.out.println("DONE IN " + ((double) (System.currentTimeMillis() - start) / (1000d * 60d)) + " Minutes");
+    public void executeAlgorithm() throws IOException {
+        JavaSparkContext sparkContext = createSparkContext();
+        JavaRDD<LabeledPoint> labeledPointJavaRDD = loadDataFromFile(sparkContext);
+        List<Integer> skipFeatures = algorithmConfiguration.getSkipFeatures();
+        List<TransactionType> transactionTypesToExecute = algorithmConfiguration.getTransactionTypesToExecute();
+        for (TransactionType transactionType : transactionTypesToExecute) {
+            JavaRDD<LabeledPoint> filterRequestedByDataType = filterRequestedDataType(labeledPointJavaRDD, transactionType, skipFeatures, sparkContext);
+            runAnomalyDetection(sparkContext, filterRequestedByDataType);
+        }
 
     }
 
@@ -222,45 +188,45 @@ public class Application implements Serializable {
     }
 
 
-    private JavaRDD<LabeledPoint> filterRequestedDataType(JavaRDD<LabeledPoint> data, double type, JavaSparkContext sc) throws IOException {
-        if (type == ALL_TYPES) {
-            return data.filter(e -> e != null).map(e -> skipSelectedFeatures(e));
+    private JavaRDD<LabeledPoint> filterRequestedDataType(JavaRDD<LabeledPoint> data, TransactionType type, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException {
+        if (type == TransactionType.ALL) {
+            return data.filter(e -> e != null).map(e -> skipSelectedFeatures(e, skipFeatures));
         } else {
-            return data.filter(e -> e != null && e.features().apply(1) == type).map(e -> skipSelectedFeatures(e));
+            return data.filter(e -> e != null && e.features().apply(1) == type.getTransactionType()).map(e -> skipSelectedFeatures(e, skipFeatures));
         }
     }
 
-    private JavaRDD<LabeledPoint> loadDataOnlyFirsTime(JavaSparkContext sc) throws IOException {
-        File file = new File("data/" + FILE_NAME);
+    private JavaRDD<LabeledPoint> loadDataFromFile(JavaSparkContext sc) throws IOException {
+        File file = new File(algorithmConfiguration.getFileName());
         return sc.textFile(file.getPath()).
                 map(line -> {
-                    double[] as = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
-                    double[] power = {0.5, 1, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
-                    for (int i = 0; i < as.length; i++) {
-                        as[i] = Math.pow(as[i], power[i]);
+                    double[] featureValues = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
+                    if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
+                        makeFeaturesMoreGaussian(featureValues);
                     }
-                    double[] doubles = Arrays.copyOfRange(as, 0, 9);//skip 9 and 10 for frauds
-                    return new LabeledPoint(as[9], Vectors.dense(doubles));
+                    //always skip 9 and 10 because they are labels fraud or not fraud
+                    featureValues = Arrays.copyOfRange(featureValues, 0, 9);
+                    return new LabeledPoint(featureValues[9], Vectors.dense(featureValues));
                 }).cache();
     }
 
-    private LabeledPoint skipSelectedFeatures(LabeledPoint e) {
-        double[] as = e.features().toArray();
-        double[] dest = new double[as.length - SKIP_FEATURES.length];
+    private void makeFeaturesMoreGaussian(double[] featureValues) {
+        double[] powers = {0.5, 1, 0.1, 0.3, 0.1, 0.08, 0.3, 0.1, 0.1, 1, 1};
+        for (int i = 0; i < featureValues.length; i++) {
+            featureValues[i] = Math.pow(featureValues[i], powers[i]);
+        }
+    }
+
+    private LabeledPoint skipSelectedFeatures(LabeledPoint labeledPoint, List<Integer> skipFeatures) {
+        double[] featureValues = labeledPoint.features().toArray();
+        double[] finalFeatureValues = new double[featureValues.length - skipFeatures.size()];
         int index = 0;
-        for (int i = 0; i < as.length; i++) {
-            boolean skip = false;
-            for (int j = 0; j < SKIP_FEATURES.length; j++) {
-                if (i == SKIP_FEATURES[j]) {
-                    skip = true;
-                    break;
-                }
-            }
-            if (!skip) {
-                dest[index++] = as[i];
+        for (int i = 0; i < featureValues.length; i++) {
+            if (!skipFeatures.contains(i)) {
+                finalFeatureValues[index] = featureValues[i];
             }
         }
-        return new LabeledPoint(e.label(), Vectors.dense(dest));
+        return new LabeledPoint(labeledPoint.label(), Vectors.dense(finalFeatureValues));
     }
 
     private class Tuple<F extends Serializable, S extends Serializable> implements Serializable {
@@ -290,7 +256,7 @@ public class Application implements Serializable {
 
     private void setHadoopHomeEnvironmentVariable() throws Exception {
         HashMap<String, String> hadoopEnvSetUp = new HashMap<>();
-        hadoopEnvSetUp.put(HADOOP_HOME, new File(HADOOP_APPLICATION_PATH).getAbsolutePath());
+        hadoopEnvSetUp.put("HADOOP_HOME", new File(algorithmConfiguration.getHadoopApplicationPath()).getAbsolutePath());
         Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
         Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
         theEnvironmentField.setAccessible(true);
