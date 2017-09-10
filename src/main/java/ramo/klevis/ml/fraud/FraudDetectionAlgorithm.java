@@ -194,7 +194,7 @@ public class FraudDetectionAlgorithm implements Serializable {
     }
 
     private List<LabeledPoint> generateTestData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize, ResultsSummary resultsSummary) {
-        int crossRegularDataSize = (int) ((regularData.size()) * (algorithmConfiguration.getCrossDataFraudPercentage() / 100d));
+        int crossRegularDataSize = (int) ((regularData.size()) * (algorithmConfiguration.getCrossDataNormalPercentage() / 100d));
         int crossAnomaliesSize = (int) (anomalies.size() * (algorithmConfiguration.getCrossDataFraudPercentage() / 100d));
         List<LabeledPoint> testDataRegular = regularData.stream().parallel()
                 .skip(trainingDataSize + crossRegularDataSize)
