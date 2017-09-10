@@ -43,17 +43,19 @@ public class FraudDetectionAlgorithm implements Serializable {
         JavaRDD<LabeledPoint> labeledPointJavaRDD = loadDataFromFile(sparkContext);
         List<Integer> skipFeatures = algorithmConfiguration.getSkipFeatures();
         List<TransactionType> transactionTypesToExecute = algorithmConfiguration.getTransactionTypesToExecute();
+        int run = 1;
         for (TransactionType transactionType : transactionTypesToExecute) {
             JavaRDD<LabeledPoint> filterRequestedByDataType = filterRequestedDataType(labeledPointJavaRDD, transactionType, skipFeatures, sparkContext);
-            runAnomalyDetection(sparkContext, filterRequestedByDataType);
+            ResultsSummary resultsSummary = runAnomalyDetection(sparkContext, filterRequestedByDataType);
+            resultsSummary.setId(run);
+            resultsSummary.setTransactionType(transactionType);
         }
 
     }
 
-    private void runAnomalyDetection(JavaSparkContext sc, JavaRDD<LabeledPoint> filteredDataByType) throws IOException {
+    private ResultsSummary runAnomalyDetection(JavaSparkContext sc, JavaRDD<LabeledPoint> filteredDataByType) throws IOException {
 
         ResultsSummary resultsSummary = new ResultsSummary();
-
         JavaRDD<LabeledPoint> regularData = filteredDataByType.filter(e -> e.label() == (0d));
         JavaRDD<LabeledPoint> anomalies = filteredDataByType.filter(e -> e.label() == (1d));
         List<LabeledPoint> regularList = new ArrayList<>(regularData.collect());
@@ -69,12 +71,12 @@ public class FraudDetectionAlgorithm implements Serializable {
         //choose 60% as train data with no anomalies
         int trainingDataSize = (int) (0.6 * regularList.size());
         List<LabeledPoint> trainData = generateTrainData(regularList, trainingDataSize);
-        List<LabeledPoint> crossData = generateCrossData(regularList, anomaliesList, trainingDataSize);
-        List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize);
+        List<LabeledPoint> crossData = generateCrossData(regularList, anomaliesList, trainingDataSize, resultsSummary);
+        List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize, resultsSummary);
 
         resultsSummary.setTrainDataSize(trainData.size());
         resultsSummary.setCrossTotalDataSize(crossData.size());
-        resultsSummary.setTestDataSize(testData.size());
+        resultsSummary.setTestTotalDataSize(testData.size());
 
         JavaRDD<LabeledPoint> paralleledTrainData = sc.parallelize(trainData);
         MultivariateStatisticalSummary summary = Statistics.colStats(paralleledTrainData.map(e -> e.features()).rdd());
@@ -96,6 +98,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         resultsSummary.setCrossFlaggedAsFraud(testResultFromCrossData.flaggedFrauds);
         resultsSummary.setCrossNotFoundFraudSize(testResultFromCrossData.missedFrauds);
         resultsSummary.setCrossFraudSize(testResultFromCrossData.totalFrauds);
+        return resultsSummary;
     }
 
     private JavaSparkContext createSparkContext() {
@@ -167,7 +170,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         return regularData.stream().parallel().limit(trainingDataSize).collect(toList());
     }
 
-    private List<LabeledPoint> generateTestData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize) {
+    private List<LabeledPoint> generateTestData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize, ResultsSummary resultsSummary) {
         int crossRegularDataSize = (int) ((regularData.size() - trainingDataSize) * 0.5);
         //choose the rest as testAlgorithmWithData validation data with no anomalies
         List<LabeledPoint> testDataRegular = regularData.stream().parallel()
@@ -177,10 +180,12 @@ public class FraudDetectionAlgorithm implements Serializable {
         List<LabeledPoint> testData = new ArrayList<>();
         testData.addAll(testDataRegular);
         testData.addAll(testAnomalies);
+        resultsSummary.setTestRegularSize(testDataRegular.size());
+        resultsSummary.setTestFraudSize(testAnomalies.size());
         return testData;
     }
 
-    private ArrayList<LabeledPoint> generateCrossData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize) {
+    private ArrayList<LabeledPoint> generateCrossData(List<LabeledPoint> regularData, List<LabeledPoint> anomalies, int trainingDataSize, ResultsSummary resultsSummary) {
         //choose 20% as cross validation data with no anomalies
         int crossRegularDataSize = (int) ((regularData.size() - trainingDataSize) * 0.5);
         List<LabeledPoint> crossDataRegular = regularData.stream().parallel().skip(trainingDataSize).limit(crossRegularDataSize).collect(toList());
@@ -188,6 +193,8 @@ public class FraudDetectionAlgorithm implements Serializable {
         ArrayList<LabeledPoint> crossData = new ArrayList<>();
         crossData.addAll(crossDataRegular);
         crossData.addAll(crossDataAnomalies);
+        resultsSummary.setCrossRegularSize(crossDataRegular.size());
+        resultsSummary.setCrossFraudSize(crossDataAnomalies.size());
         return crossData;
     }
 

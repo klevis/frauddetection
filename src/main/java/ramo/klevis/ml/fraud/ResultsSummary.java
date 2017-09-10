@@ -35,6 +35,28 @@ public class ResultsSummary {
     private long crossFraudSize;
     private long crossRegularSize;
     private long crossTotalDataSize;
+    private int id;
+    private TransactionType transactionType;
+
+    public ResultsSummary() {
+
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
+    }
 
     public long getCrossRegularSize() {
         return crossRegularSize;
@@ -102,14 +124,6 @@ public class ResultsSummary {
 
     public void setCrossTotalDataSize(long crossTotalDataSize) {
         this.crossTotalDataSize = crossTotalDataSize;
-    }
-
-    public long getTestDataSize() {
-        return testTotalDataSize;
-    }
-
-    public void setTestDataSize(long testTotalDataSize) {
-        this.testTotalDataSize = testTotalDataSize;
     }
 
     public long getTimeInMilliseconds() {
