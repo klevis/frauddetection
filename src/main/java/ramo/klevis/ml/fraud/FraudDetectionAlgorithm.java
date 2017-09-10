@@ -47,10 +47,13 @@ public class FraudDetectionAlgorithm implements Serializable {
         List<ResultsSummary> resultsSummaries = new ArrayList<>();
         for (int i = 0; i < runsTime; i++) {
             for (TransactionType transactionType : transactionTypesToExecute) {
+                long startTime = System.currentTimeMillis();
                 JavaRDD<LabeledPoint> filterRequestedByDataType = filterRequestedDataType(labeledPointJavaRDD, transactionType, skipFeatures, sparkContext);
                 ResultsSummary resultsSummary = runAnomalyDetection(sparkContext, filterRequestedByDataType);
                 resultsSummary.setId(i);
                 resultsSummary.setTransactionType(transactionType);
+                resultsSummary.setAlgorithmConfiguration(algorithmConfiguration);
+                resultsSummary.setTimeInMilliseconds((System.currentTimeMillis()) - startTime);
                 resultsSummaries.add(resultsSummary);
             }
         }
@@ -244,8 +247,9 @@ public class FraudDetectionAlgorithm implements Serializable {
                         makeFeaturesMoreGaussian(featureValues);
                     }
                     //always skip 9 and 10 because they are labels fraud or not fraud
+                    double label = featureValues[9];
                     featureValues = Arrays.copyOfRange(featureValues, 0, 9);
-                    return new LabeledPoint(featureValues[9], Vectors.dense(featureValues));
+                    return new LabeledPoint(label, Vectors.dense(featureValues));
                 }).cache();
     }
 

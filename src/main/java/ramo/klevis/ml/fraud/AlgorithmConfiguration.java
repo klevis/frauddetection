@@ -221,4 +221,23 @@ public class AlgorithmConfiguration implements Serializable {
         }
 
     }
+
+    @Override
+    public String toString() {
+        return "AlgorithmConfiguration{" +
+                "skipFeatures=" + skipFeatures +
+                ", transactionTypesToExecute=" + transactionTypesToExecute +
+                ", fileName='" + fileName + '\'' +
+                ", hadoopApplicationPath='" + hadoopApplicationPath + '\'' +
+                ", makeFeaturesMoreGaussian=" + makeFeaturesMoreGaussian +
+                ", runsTime=" + runsTime +
+                ", runsWith='" + runsWith + '\'' +
+                ", trainDataNormalPercentage=" + trainDataNormalPercentage +
+                ", trainDataFraudPercentage=" + trainDataFraudPercentage +
+                ", testDataFraudPercentage=" + testDataFraudPercentage +
+                ", testDataNormalPercentage=" + testDataNormalPercentage +
+                ", crossDataFraudPercentage=" + crossDataFraudPercentage +
+                ", crossDataNormalPercentage=" + crossDataNormalPercentage +
+                '}';
+    }
 }

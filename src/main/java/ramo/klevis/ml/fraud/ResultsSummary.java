@@ -1,5 +1,7 @@
 package ramo.klevis.ml.fraud;
 
+import java.util.Arrays;
+
 /**
  * Created by klevis.ramo on 9/10/2017.
  */
@@ -37,6 +39,7 @@ public class ResultsSummary {
     private long crossTotalDataSize;
     private int id;
     private TransactionType transactionType;
+    private AlgorithmConfiguration algorithmConfiguration;
 
     public ResultsSummary() {
 
@@ -229,5 +232,46 @@ public class ResultsSummary {
 
     public void setCrossFraudSize(long crossFraudSize) {
         this.crossFraudSize = crossFraudSize;
+    }
+
+    public void setAlgorithmConfiguration(AlgorithmConfiguration algorithmConfiguration) {
+        this.algorithmConfiguration = algorithmConfiguration;
+    }
+
+    public AlgorithmConfiguration getAlgorithmConfiguration() {
+        return algorithmConfiguration;
+    }
+
+    @Override
+    public String toString() {
+        return "ResultsSummary{" +
+                "trainDataSize=" + trainDataSize +
+                ", timeInMilliseconds=" + timeInMilliseconds +
+                ", epsilon=" + epsilon +
+                ", mu=" + Arrays.toString(mu) +
+                ", sigma=" + Arrays.toString(sigma) +
+                ", testNotFoundFraudSize=" + testNotFoundFraudSize +
+                ", testFoundFraudSize=" + testFoundFraudSize +
+                ", testFlaggedAsFraud=" + testFlaggedAsFraud +
+                ", testFraudSize=" + testFraudSize +
+                ", testRegularSize=" + testRegularSize +
+                ", testTotalDataSize=" + testTotalDataSize +
+                ", successPercentage=" + successPercentage +
+                ", failPercentage=" + failPercentage +
+                ", totalRegularSize=" + totalRegularSize +
+                ", totalFraudSize=" + totalFraudSize +
+                ", totalNotFoundFraudSize=" + totalNotFoundFraudSize +
+                ", totalFoundFraudSize=" + totalFoundFraudSize +
+                ", totalFlaggedAsFraud=" + totalFlaggedAsFraud +
+                ", crossFoundFraudSize=" + crossFoundFraudSize +
+                ", crossFlaggedAsFraud=" + crossFlaggedAsFraud +
+                ", crossNotFoundFraudSize=" + crossNotFoundFraudSize +
+                ", crossFraudSize=" + crossFraudSize +
+                ", crossRegularSize=" + crossRegularSize +
+                ", crossTotalDataSize=" + crossTotalDataSize +
+                ", id=" + id +
+                ", transactionType=" + transactionType +
+                ", algorithmConfiguration=" + algorithmConfiguration +
+                '}';
     }
 }

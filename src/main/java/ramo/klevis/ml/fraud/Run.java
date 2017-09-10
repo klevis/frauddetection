@@ -3,6 +3,7 @@ package ramo.klevis.ml.fraud;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 import static java.lang.Boolean.*;
@@ -21,10 +22,13 @@ public class Run {
     private static final String FILE_NAME = "fileName";
     private static final String RUNS_TIME = "runsTime";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         AlgorithmConfiguration algorithmConfiguration = getAlgorithmConfigurationFromProperties();
-
-
+        FraudDetectionAlgorithm fraudDetectionAlgorithm = new FraudDetectionAlgorithm(algorithmConfiguration);
+        List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
+        for (ResultsSummary resultsSummary : resultsSummaries) {
+            System.out.println(resultsSummary);
+        }
 
     }
 
