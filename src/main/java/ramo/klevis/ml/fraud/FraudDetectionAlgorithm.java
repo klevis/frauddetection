@@ -67,7 +67,7 @@ public class FraudDetectionAlgorithm implements Serializable {
         resultsSummary.setTotalFraudSize(anomaliesList.size());
 
         //choose 60% as train data with no anomalies
-        int trainingDataSize = (int) (0.6 * regularList.size());
+        int trainingDataSize = (int) (algorithmConfiguration.getTrainDataNormalPercentage()/100d * regularList.size());
         List<LabeledPoint> trainData = generateTrainData(regularList, trainingDataSize);
         List<LabeledPoint> crossData = generateCrossData(regularList, anomaliesList, trainingDataSize, resultsSummary);
         List<LabeledPoint> testData = generateTestData(regularList, anomaliesList, trainingDataSize, resultsSummary);

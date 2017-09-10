@@ -21,8 +21,14 @@ public class AlgorithmConfiguration implements Serializable {
     private boolean makeFeaturesMoreGaussian;
     private int runsTime;
     private String runsWith;
+    private int trainDataNormalPercentage;
+    private int trainDataFraudPercentage;
+    private int testDataFraudPercentage;
+    private int testDataNormalPercentage;
+    private int crossDataFraudPercentage;
+    private int crossDataNormalPercentage;
 
-    private AlgorithmConfiguration(List<Integer> skipFeatures, List<TransactionType> transactionTypesToExecute, String fileName, String hadoopApplicationPath, boolean makeFeaturesMoreGaussian, int runsTime, String runsWith) {
+    private AlgorithmConfiguration(List<Integer> skipFeatures, List<TransactionType> transactionTypesToExecute, String fileName, String hadoopApplicationPath, boolean makeFeaturesMoreGaussian, int runsTime, String runsWith, int trainDataNormalPercentage, int trainDataFraudPercentage, int testDataFraudPercentage, int testDataNormalPercentage, int crossDataFraudPercentage, int crossDataNormalPercentage) {
         this.skipFeatures = skipFeatures;
         this.transactionTypesToExecute = transactionTypesToExecute;
         this.fileName = fileName;
@@ -30,6 +36,60 @@ public class AlgorithmConfiguration implements Serializable {
         this.makeFeaturesMoreGaussian = makeFeaturesMoreGaussian;
         this.runsTime = runsTime;
         this.runsWith = runsWith;
+        this.trainDataNormalPercentage = trainDataNormalPercentage;
+        this.trainDataFraudPercentage = trainDataFraudPercentage;
+        this.testDataFraudPercentage = testDataFraudPercentage;
+        this.testDataNormalPercentage = testDataNormalPercentage;
+        this.crossDataFraudPercentage = crossDataFraudPercentage;
+        this.crossDataNormalPercentage = crossDataNormalPercentage;
+    }
+
+    public int getTrainDataNormalPercentage() {
+        return trainDataNormalPercentage;
+    }
+
+    public void setTrainDataNormalPercentage(int trainDataNormalPercentage) {
+        this.trainDataNormalPercentage = trainDataNormalPercentage;
+    }
+
+    public int getTrainDataFraudPercentage() {
+        return trainDataFraudPercentage;
+    }
+
+    public void setTrainDataFraudPercentage(int trainDataFraudPercentage) {
+        this.trainDataFraudPercentage = trainDataFraudPercentage;
+    }
+
+    public int getTestDataFraudPercentage() {
+        return testDataFraudPercentage;
+    }
+
+    public void setTestDataFraudPercentage(int testDataFraudPercentage) {
+        this.testDataFraudPercentage = testDataFraudPercentage;
+    }
+
+    public int getTestDataNormalPercentage() {
+        return testDataNormalPercentage;
+    }
+
+    public void setTestDataNormalPercentage(int testDataNormalPercentage) {
+        this.testDataNormalPercentage = testDataNormalPercentage;
+    }
+
+    public int getCrossDataFraudPercentage() {
+        return crossDataFraudPercentage;
+    }
+
+    public void setCrossDataFraudPercentage(int crossDataFraudPercentage) {
+        this.crossDataFraudPercentage = crossDataFraudPercentage;
+    }
+
+    public int getCrossDataNormalPercentage() {
+        return crossDataNormalPercentage;
+    }
+
+    public void setCrossDataNormalPercentage(int crossDataNormalPercentage) {
+        this.crossDataNormalPercentage = crossDataNormalPercentage;
     }
 
     public int getRunsTime() {
@@ -70,6 +130,12 @@ public class AlgorithmConfiguration implements Serializable {
         private boolean makeFeaturesMoreGaussian = true;
         private int runsTime = 1;
         private String runsWith;
+        private int trainDataNormalPercentage;
+        private int trainDataFraudPercentage;
+        private int testDataFraudPercentage;
+        private int testDataNormalPercentage;
+        private int crossDataFraudPercentage;
+        private int crossDataNormalPercentage;
 
         public AlgorithmConfigurationBuilder withSkipFeatures(String... skipFeatures) {
             this.skipFeatures.addAll(Arrays.asList(skipFeatures));
@@ -106,6 +172,36 @@ public class AlgorithmConfiguration implements Serializable {
             return this;
         }
 
+        public AlgorithmConfigurationBuilder withTrainDataNormalPercentage(int trainDataNormalPercentage) {
+            this.trainDataNormalPercentage = trainDataNormalPercentage;
+            return this;
+        }
+
+        public AlgorithmConfigurationBuilder withTrainDataFraudPercentage(int trainDataFraudPercentage) {
+            this.trainDataFraudPercentage = trainDataFraudPercentage;
+            return this;
+        }
+
+        public AlgorithmConfigurationBuilder withTestDataFraudPercentage(int testDataFraudPercentage) {
+            this.testDataFraudPercentage = testDataFraudPercentage;
+            return this;
+        }
+
+        public AlgorithmConfigurationBuilder withTestDataNormalPercentage(int testDataNormalPercentage) {
+            this.testDataNormalPercentage = testDataNormalPercentage;
+            return this;
+        }
+
+        public AlgorithmConfigurationBuilder withCrossDataFraudPercentage(int crossDataFraudPercentage) {
+            this.crossDataFraudPercentage = crossDataFraudPercentage;
+            return this;
+        }
+
+        public AlgorithmConfigurationBuilder withCrossDataNormalPercentage(int crossDataNormalPercentage) {
+            this.crossDataNormalPercentage = crossDataNormalPercentage;
+            return this;
+        }
+
         public AlgorithmConfiguration createAlgorithmConfiguration() {
             return new AlgorithmConfiguration(skipFeatures.stream()
                     .map(e -> Integer.valueOf(e)).collect(Collectors.toList()),
@@ -115,7 +211,13 @@ public class AlgorithmConfiguration implements Serializable {
                     hadoopApplicationPath,
                     makeFeaturesMoreGaussian,
                     runsTime,
-                    runsWith);
+                    runsWith,
+                    trainDataNormalPercentage,
+                    trainDataFraudPercentage,
+                    testDataFraudPercentage,
+                    testDataNormalPercentage,
+                    crossDataFraudPercentage,
+                    crossDataNormalPercentage);
         }
 
     }

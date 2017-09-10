@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import static java.lang.Boolean.*;
+import static java.lang.Integer.*;
+
 /**
  * Created by klevis.ramo on 9/10/2017.
  */
@@ -31,12 +34,17 @@ public class Run {
         AlgorithmConfiguration algorithmConfiguration = new AlgorithmConfiguration.AlgorithmConfigurationBuilder()
                 .withTransactionTypes(properties.getProperty(TRANSACTION_TYPES).split(","))
                 .withSkipFeatures(properties.getProperty(SKIP_FEATURES).split(","))
-                .withMakeFeaturesMoreGaussian(Boolean.parseBoolean(properties.getProperty(MAKE_FEATURES_MORE_GAUSSIAN)))
+                .withMakeFeaturesMoreGaussian(parseBoolean(properties.getProperty(MAKE_FEATURES_MORE_GAUSSIAN)))
                 .withHadoopApplicationPath(properties.getProperty(HADOOP_APPLICATION_PATH))
                 .withFileName(properties.getProperty(FILE_NAME))
-                .withRunsTime(Integer.parseInt(properties.getProperty(RUNS_TIME)))
+                .withRunsTime(parseInt(properties.getProperty(RUNS_TIME)))
+                .withTrainDataNormalPercentage(parseInt(properties.getProperty("trainDataNormalPercentage")))
+                .withTrainDataFraudPercentage(parseInt(properties.getProperty("trainDataFraudPercentage")))
+                .withTestDataFraudPercentage(parseInt(properties.getProperty("testDataFraudPercentage")))
+                .withTestDataNormalPercentage(parseInt(properties.getProperty("testDataNormalPercentage")))
+                .withCrossDataFraudPercentage(parseInt(properties.getProperty("crossDataFraudPercentage")))
+                .withCrossDataNormalPercentage(parseInt(properties.getProperty("crossDataNormalPercentage")))
                 .createAlgorithmConfiguration();
-
         return algorithmConfiguration;
     }
 }
