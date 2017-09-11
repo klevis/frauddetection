@@ -11,11 +11,13 @@ import ramo.klevis.ml.fraud.data.ResultsSummary;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
@@ -45,7 +47,11 @@ public class Run {
         List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
         System.out.println("Finish within " + (System.currentTimeMillis() - startTime));
         for (ResultsSummary resultsSummary : resultsSummaries) {
+            PrintWriter printWriter = new PrintWriter("out/ResultSummaries" + (ThreadLocalRandom.current().nextInt()) + "-" + resultsSummary.getId() + ".txt");
             System.out.println(resultsSummary);
+            printWriter.print(resultsSummary);
+            printWriter.flush();
+            printWriter.close();
         }
 
     }
