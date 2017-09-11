@@ -34,12 +34,7 @@ public class Run {
     public static void main(String[] args) throws Exception {
         AlgorithmConfiguration algorithmConfiguration = getAlgorithmConfigurationFromProperties();
         setHadoopHomeEnvironmentVariable(algorithmConfiguration);
-        IFraudDetectionAlgorithm fraudDetectionAlgorithm;
-        if (algorithmConfiguration.getRunsWith().equalsIgnoreCase("spark")) {
-            fraudDetectionAlgorithm = new FraudDetectionAlgorithmSpark(algorithmConfiguration);
-        } else {
-            fraudDetectionAlgorithm = new FraudDetectionAlgorithmJavaStream(algorithmConfiguration);
-        }
+        IFraudDetectionAlgorithm fraudDetectionAlgorithm = getiFraudDetectionAlgorithm(algorithmConfiguration);
         System.out.println(algorithmConfiguration);
         long startTime = System.currentTimeMillis();
         List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
@@ -48,6 +43,16 @@ public class Run {
             System.out.println(resultsSummary);
         }
 
+    }
+
+    private static IFraudDetectionAlgorithm getiFraudDetectionAlgorithm(AlgorithmConfiguration algorithmConfiguration) {
+        IFraudDetectionAlgorithm fraudDetectionAlgorithm;
+        if (algorithmConfiguration.getRunsWith().equalsIgnoreCase("spark")) {
+            fraudDetectionAlgorithm = new FraudDetectionAlgorithmSpark(algorithmConfiguration);
+        } else {
+            fraudDetectionAlgorithm = new FraudDetectionAlgorithmJavaStream(algorithmConfiguration);
+        }
+        return fraudDetectionAlgorithm;
     }
 
     private static AlgorithmConfiguration getAlgorithmConfigurationFromProperties() throws IOException {

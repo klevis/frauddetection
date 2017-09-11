@@ -157,12 +157,11 @@ public class FraudDetectionAlgorithmJavaStream extends AlgorithmTemplateExecutio
         return 2 * (prec * rec) / (prec + rec);
     }
 
-    protected List<LabeledPoint> filterRequestedDataType(List<LabeledPoint> data, TransactionType type, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException {
-        if (type == TransactionType.ALL) {
-            return data.stream().parallel().filter(e -> e != null).map(e -> skipSelectedFeatures(e, skipFeatures)).collect(toList());
-        } else {
-            return data.stream().parallel().filter(e -> e != null && e.features().apply(1) == type.getTransactionType()).map(e -> skipSelectedFeatures(e, skipFeatures)).collect(toList());
-        }
+    protected List<LabeledPoint> filterRequestedDataType(List<LabeledPoint> data, List<TransactionType> types, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException {
+        return data.stream().parallel().filter(e -> e != null &&
+                types.stream().filter(type -> type == TransactionType.ALL ||
+                        type.getTransactionType() == e.features().apply(1)).findAny().isPresent())
+                .map(e -> skipSelectedFeatures(e, skipFeatures)).collect(toList());
     }
 
     protected List<LabeledPoint> loadDataFromFile(JavaSparkContext sc) throws IOException {

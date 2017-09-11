@@ -39,16 +39,14 @@ public abstract class AlgorithmTemplateExecution<T> implements Serializable, IFr
         List<ResultsSummary> resultsSummaries = new ArrayList<>();
         int runsTime = algorithmConfiguration.getRunsTime();
         for (int i = 0; i < runsTime; i++) {
-            for (TransactionType transactionType : transactionTypesToExecute) {
-                long startTime = System.currentTimeMillis();
-                T filterRequestedByDataType = filterRequestedDataType(labeledPointJavaRDD, transactionType, skipFeatures, sparkContext);
-                ResultsSummary resultsSummary = runAnomalyDetection(sparkContext, filterRequestedByDataType);
-                resultsSummary.setId(i);
-                resultsSummary.setTransactionType(transactionType);
-                resultsSummary.setAlgorithmConfiguration(algorithmConfiguration);
-                resultsSummary.setTimeInMilliseconds((System.currentTimeMillis()) - startTime);
-                resultsSummaries.add(resultsSummary);
-            }
+            long startTime = System.currentTimeMillis();
+            T filterRequestedByDataType = filterRequestedDataType(labeledPointJavaRDD, transactionTypesToExecute, skipFeatures, sparkContext);
+            ResultsSummary resultsSummary = runAnomalyDetection(sparkContext, filterRequestedByDataType);
+            resultsSummary.setId(i);
+            resultsSummary.setTransactionTypes(transactionTypesToExecute);
+            resultsSummary.setAlgorithmConfiguration(algorithmConfiguration);
+            resultsSummary.setTimeInMilliseconds((System.currentTimeMillis()) - startTime);
+            resultsSummaries.add(resultsSummary);
         }
         return resultsSummaries;
     }
@@ -117,7 +115,7 @@ public abstract class AlgorithmTemplateExecution<T> implements Serializable, IFr
     protected abstract GeneratedData<T> randomlyGenerateData(int normalSize, int fraudSize, T regularData, T anomalies, JavaSparkContext sparkContext);
 
 
-    protected abstract T filterRequestedDataType(T data, TransactionType type, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException;
+    protected abstract T filterRequestedDataType(T data, List<TransactionType> type, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException;
 
     protected abstract T loadDataFromFile(JavaSparkContext sc) throws IOException;
 
@@ -139,7 +137,6 @@ public abstract class AlgorithmTemplateExecution<T> implements Serializable, IFr
         SparkConf conf = new SparkConf().setAppName("Finance Fraud Detection").setMaster("local[*]");
         return new JavaSparkContext(conf);
     }
-
 
 
     protected void makeFeaturesMoreGaussian(double[] featureValues) {

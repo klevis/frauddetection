@@ -115,12 +115,13 @@ public class FraudDetectionAlgorithmSpark extends AlgorithmTemplateExecution<Jav
     }
 
 
-    protected JavaRDD<LabeledPoint> filterRequestedDataType(JavaRDD<LabeledPoint> data, TransactionType type, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException {
-        if (type == TransactionType.ALL) {
-            return data.filter(e -> e != null).map(e -> skipSelectedFeatures(e, skipFeatures));
-        } else {
-            return data.filter(e -> e != null && e.features().apply(1) == type.getTransactionType()).map(e -> skipSelectedFeatures(e, skipFeatures));
-        }
+    protected JavaRDD<LabeledPoint> filterRequestedDataType(JavaRDD<LabeledPoint> data, List<TransactionType> types, List<Integer> skipFeatures, JavaSparkContext sc) throws IOException {
+
+        return data.filter(e -> e != null &&
+                types.stream().filter(type -> (type == TransactionType.ALL
+                        || type.getTransactionType() == e.features().apply(1))).findAny().isPresent())
+                .map(e -> skipSelectedFeatures(e, skipFeatures));
+
     }
 
     @Override

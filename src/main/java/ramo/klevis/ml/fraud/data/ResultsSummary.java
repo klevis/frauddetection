@@ -3,6 +3,7 @@ package ramo.klevis.ml.fraud.data;
 import ramo.klevis.ml.fraud.algorithm.AlgorithmConfiguration;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by klevis.ramo on 9/10/2017.
@@ -37,10 +38,10 @@ public class ResultsSummary {
     private long crossRegularSize;
     private long crossTotalDataSize;
     private int id;
-    private TransactionType transactionType;
     private AlgorithmConfiguration algorithmConfiguration;
     private long trainFraudSize;
     private int trainTotalDataSize;
+    private List<TransactionType> transactionTypes;
 
     public ResultsSummary() {
 
@@ -52,14 +53,6 @@ public class ResultsSummary {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public TransactionType getTransactionType() {
-        return transactionType;
-    }
-
-    public void setTransactionType(TransactionType transactionType) {
-        this.transactionType = transactionType;
     }
 
     public long getCrossRegularSize() {
@@ -254,7 +247,7 @@ public class ResultsSummary {
                 "trainRegularSize=" + trainRegularSize + "\n" +
                 ", trainFraudSize=" + trainFraudSize + "\n" +
                 ", trainTotalDataSize=" + trainTotalDataSize + "\n" +
-                ", transactionType=" + transactionType + "\n" +
+                ", transactionTypes=" + transactionTypes + "\n" +
                 ", timeInMilliseconds=" + timeInMilliseconds + "\n" +
                 ", testNotFoundFraudSize=" + testNotFoundFraudSize + "\n" +
                 ", testFoundFraudSize=" + testFoundFraudSize + "\n" +
@@ -292,5 +285,13 @@ public class ResultsSummary {
 
     public int getTrainTotalDataSize() {
         return trainTotalDataSize;
+    }
+
+    public void setTransactionTypes(List<TransactionType> transactionTypes) {
+        this.transactionTypes = transactionTypes;
+    }
+
+    public List<TransactionType> getTransactionTypes() {
+        return transactionTypes;
     }
 }
