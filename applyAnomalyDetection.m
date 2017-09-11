@@ -51,9 +51,9 @@ foundFraudFromFlaggedSize=size(flaggedFraudAndAreFrauds,1)
 notFoundFraudSizeFromTest=testFraudSize-flaggedFraudAndAreFraudsOnTestSize
 totalNotFoundFraudSize=size(notFoundFrauds,1)
 
-regularSize=size(regular,1)
+totalRegularSize=size(regular,1)
 
-allSize=flaggedTotalFraudSize+totalNotFoundFraudSize+regularSize
+allSize=flaggedTotalFraudSize+totalNotFoundFraudSize+totalRegularSize
 diff=allSize-size(data,1)
 
 #Plot results
@@ -66,8 +66,8 @@ colors = [
      ];
 colorsIDs=colorsIDs+([ones(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);zeros(allSize-flaggedTotalFraudSize+foundFraudFromFlaggedSize,1)]);
 colorsIDs=colorsIDs+([zeros(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);ones(totalNotFoundFraudSize,1)+1;zeros(allSize-flaggedTotalFraudSize+foundFraudFromFlaggedSize-totalNotFoundFraudSize,1)]);
-colorsIDs=colorsIDs+([zeros(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);zeros(totalNotFoundFraudSize,1);(ones(regularSize,1)+2);zeros(allSize-flaggedTotalFraudSize+foundFraudFromFlaggedSize-totalNotFoundFraudSize-regularSize,1)]);
-colorsIDs=colorsIDs+([zeros(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);zeros(totalNotFoundFraudSize,1);zeros(regularSize,1);(ones(foundFraudFromFlaggedSize,1)+3)]);
+colorsIDs=colorsIDs+([zeros(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);zeros(totalNotFoundFraudSize,1);(ones(totalRegularSize,1)+2);zeros(allSize-flaggedTotalFraudSize+foundFraudFromFlaggedSize-totalNotFoundFraudSize-totalRegularSize,1)]);
+colorsIDs=colorsIDs+([zeros(flaggedTotalFraudSize-foundFraudFromFlaggedSize,1);zeros(totalNotFoundFraudSize,1);zeros(totalRegularSize,1);(ones(foundFraudFromFlaggedSize,1)+3)]);
 
 all=[flaggedFraudButAreNotFrauds;notFoundFrauds;regular;flaggedFraudAndAreFrauds];
 figure(2)
