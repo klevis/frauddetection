@@ -24,7 +24,7 @@ public abstract class AlgorithmTemplateExecution<T> implements Serializable, IFr
 
 
     protected final AlgorithmConfiguration algorithmConfiguration;
-    protected JavaSparkContext sparkContext;
+    protected transient JavaSparkContext sparkContext;
 
     public AlgorithmTemplateExecution(AlgorithmConfiguration algorithmConfiguration) {
         this.algorithmConfiguration = algorithmConfiguration;

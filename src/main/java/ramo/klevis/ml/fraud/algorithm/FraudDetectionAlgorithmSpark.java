@@ -2,6 +2,7 @@ package ramo.klevis.ml.fraud.algorithm;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.linalg.DenseMatrix;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
@@ -167,16 +168,20 @@ public class FraudDetectionAlgorithmSpark extends AlgorithmTemplateExecution<Jav
 
     protected JavaRDD<LabeledPoint> loadDataFromFile(JavaSparkContext sc) throws IOException {
         File file = new File(algorithmConfiguration.getFileName());
+        Function<String, LabeledPoint> stringLabeledPointFunction = new Function<String, LabeledPoint>() {
+            @Override
+            public LabeledPoint call(String line) throws Exception {
+                double[] featureValues = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
+                if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
+                    FraudDetectionAlgorithmSpark.this.makeFeaturesMoreGaussian(featureValues);
+                }
+                //always skip 9 and 10 because they are labels fraud or not fraud
+                double label = featureValues[9];
+                featureValues = Arrays.copyOfRange(featureValues, 0, 9);
+                return new LabeledPoint(label, Vectors.dense(featureValues));
+            }
+        };
         return sc.textFile(file.getPath()).
-                map(line -> {
-                    double[] featureValues = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
-                    if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
-                        makeFeaturesMoreGaussian(featureValues);
-                    }
-                    //always skip 9 and 10 because they are labels fraud or not fraud
-                    double label = featureValues[9];
-                    featureValues = Arrays.copyOfRange(featureValues, 0, 9);
-                    return new LabeledPoint(label, Vectors.dense(featureValues));
-                }).cache();
+                map(stringLabeledPointFunction).cache();
     }
 }
