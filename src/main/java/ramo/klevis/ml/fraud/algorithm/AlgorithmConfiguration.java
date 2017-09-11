@@ -1,4 +1,7 @@
-package ramo.klevis.ml.fraud;
+package ramo.klevis.ml.fraud.algorithm;
+
+import org.apache.commons.lang3.StringUtils;
+import ramo.klevis.ml.fraud.data.TransactionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -43,52 +46,31 @@ public class AlgorithmConfiguration implements Serializable {
         this.crossDataNormalPercentage = crossDataNormalPercentage;
     }
 
-    public int getTrainDataNormalPercentage() {
-        return trainDataNormalPercentage;
+    public double getTrainDataNormalPercentage() {
+        return trainDataNormalPercentage / 100d;
     }
 
-    public void setTrainDataNormalPercentage(int trainDataNormalPercentage) {
-        this.trainDataNormalPercentage = trainDataNormalPercentage;
+
+    public double getTrainDataFraudPercentage() {
+        return trainDataFraudPercentage / 100d;
     }
 
-    public int getTrainDataFraudPercentage() {
-        return trainDataFraudPercentage;
+
+    public double getTestDataFraudPercentage() {
+        return testDataFraudPercentage / 100d;
     }
 
-    public void setTrainDataFraudPercentage(int trainDataFraudPercentage) {
-        this.trainDataFraudPercentage = trainDataFraudPercentage;
+    public double getTestDataNormalPercentage() {
+        return testDataNormalPercentage / 100d;
     }
 
-    public int getTestDataFraudPercentage() {
-        return testDataFraudPercentage;
+
+    public double getCrossDataFraudPercentage() {
+        return crossDataFraudPercentage / 100d;
     }
 
-    public void setTestDataFraudPercentage(int testDataFraudPercentage) {
-        this.testDataFraudPercentage = testDataFraudPercentage;
-    }
-
-    public int getTestDataNormalPercentage() {
-        return testDataNormalPercentage;
-    }
-
-    public void setTestDataNormalPercentage(int testDataNormalPercentage) {
-        this.testDataNormalPercentage = testDataNormalPercentage;
-    }
-
-    public int getCrossDataFraudPercentage() {
-        return crossDataFraudPercentage;
-    }
-
-    public void setCrossDataFraudPercentage(int crossDataFraudPercentage) {
-        this.crossDataFraudPercentage = crossDataFraudPercentage;
-    }
-
-    public int getCrossDataNormalPercentage() {
-        return crossDataNormalPercentage;
-    }
-
-    public void setCrossDataNormalPercentage(int crossDataNormalPercentage) {
-        this.crossDataNormalPercentage = crossDataNormalPercentage;
+    public double getCrossDataNormalPercentage() {
+        return crossDataNormalPercentage / 100d;
     }
 
     public int getRunsTime() {
@@ -114,7 +96,6 @@ public class AlgorithmConfiguration implements Serializable {
     public String getFileName() {
         return fileName;
     }
-
 
     public String getHadoopApplicationPath() {
         return hadoopApplicationPath;
@@ -202,7 +183,7 @@ public class AlgorithmConfiguration implements Serializable {
         }
 
         public AlgorithmConfiguration createAlgorithmConfiguration() {
-            return new AlgorithmConfiguration(skipFeatures.stream()
+            return new AlgorithmConfiguration(skipFeatures.stream().filter(e -> !StringUtils.isEmpty(e))
                     .map(e -> Integer.valueOf(e)).collect(Collectors.toList()),
                     transactionTypesToExecute.stream()
                             .map(e -> TransactionType.valueOf(e)).collect(Collectors.toList()),
@@ -223,20 +204,20 @@ public class AlgorithmConfiguration implements Serializable {
 
     @Override
     public String toString() {
-        return "AlgorithmConfiguration{" +"\n"+
-                "skipFeatures=" + skipFeatures +"\n"+
-                ", transactionTypesToExecute=" + transactionTypesToExecute +"\n"+
-                ", fileName='" + fileName + '\'' +"\n"+
-                ", hadoopApplicationPath='" + hadoopApplicationPath + '\'' +"\n"+
+        return "AlgorithmConfiguration{" + "\n" +
+                "skipFeatures=" + skipFeatures + "\n" +
+                ", transactionTypesToExecute=" + transactionTypesToExecute + "\n" +
+                ", fileName='" + fileName + '\'' + "\n" +
+                ", hadoopApplicationPath='" + hadoopApplicationPath + '\'' + "\n" +
                 ", makeFeaturesMoreGaussian=" + makeFeaturesMoreGaussian +
-                ", runsTime=" + runsTime +"\n"+
-                ", runsWith='" + runsWith + '\'' +"\n"+
-                ", trainDataNormalPercentage=" + trainDataNormalPercentage +"\n"+
-                ", trainDataFraudPercentage=" + trainDataFraudPercentage +"\n"+
-                ", testDataFraudPercentage=" + testDataFraudPercentage +"\n"+
-                ", testDataNormalPercentage=" + testDataNormalPercentage +"\n"+
-                ", crossDataFraudPercentage=" + crossDataFraudPercentage +"\n"+
-                ", crossDataNormalPercentage=" + crossDataNormalPercentage +"\n"+
+                ", runsTime=" + runsTime + "\n" +
+                ", runsWith='" + runsWith + '\'' + "\n" +
+                ", trainDataNormalPercentage=" + trainDataNormalPercentage + "\n" +
+                ", trainDataFraudPercentage=" + trainDataFraudPercentage + "\n" +
+                ", testDataFraudPercentage=" + testDataFraudPercentage + "\n" +
+                ", testDataNormalPercentage=" + testDataNormalPercentage + "\n" +
+                ", crossDataFraudPercentage=" + crossDataFraudPercentage + "\n" +
+                ", crossDataNormalPercentage=" + crossDataNormalPercentage + "\n" +
                 '}';
     }
 }

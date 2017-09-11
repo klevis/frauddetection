@@ -1,4 +1,4 @@
-package ramo.klevis.ml.fraud;
+package ramo.klevis.ml.fraud.data;
 
 import java.io.Serializable;
 

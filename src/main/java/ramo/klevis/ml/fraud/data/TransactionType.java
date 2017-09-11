@@ -1,4 +1,4 @@
-package ramo.klevis.ml.fraud;
+package ramo.klevis.ml.fraud.data;
 
 /**
  * Created by klevis.ramo on 9/10/2017.

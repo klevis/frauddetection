@@ -1,5 +1,11 @@
 package ramo.klevis.ml.fraud;
 
+import ramo.klevis.ml.fraud.algorithm.AlgorithmConfiguration;
+import ramo.klevis.ml.fraud.algorithm.FraudDetectionAlgorithmJavaStream;
+import ramo.klevis.ml.fraud.algorithm.FraudDetectionAlgorithmSpark;
+import ramo.klevis.ml.fraud.algorithm.IFraudDetectionAlgorithm;
+import ramo.klevis.ml.fraud.data.ResultsSummary;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,8 +34,16 @@ public class Run {
     public static void main(String[] args) throws Exception {
         AlgorithmConfiguration algorithmConfiguration = getAlgorithmConfigurationFromProperties();
         setHadoopHomeEnvironmentVariable(algorithmConfiguration);
-        FraudDetectionAlgorithm fraudDetectionAlgorithm = new FraudDetectionAlgorithm(algorithmConfiguration);
+        IFraudDetectionAlgorithm fraudDetectionAlgorithm;
+        if (algorithmConfiguration.getRunsWith().equalsIgnoreCase("spark")) {
+            fraudDetectionAlgorithm = new FraudDetectionAlgorithmSpark(algorithmConfiguration);
+        } else {
+            fraudDetectionAlgorithm = new FraudDetectionAlgorithmJavaStream(algorithmConfiguration);
+        }
+        System.out.println(algorithmConfiguration);
+        long startTime = System.currentTimeMillis();
         List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
+        System.out.println("Finish within " + (System.currentTimeMillis() - startTime));
         for (ResultsSummary resultsSummary : resultsSummaries) {
             System.out.println(resultsSummary);
         }
@@ -52,6 +66,7 @@ public class Run {
                 .withTestDataNormalPercentage(parseInt(properties.getProperty("testDataNormalPercentage")))
                 .withCrossDataFraudPercentage(parseInt(properties.getProperty("crossDataFraudPercentage")))
                 .withCrossDataNormalPercentage(parseInt(properties.getProperty("crossDataNormalPercentage")))
+                .withRunsWith(properties.getProperty("runsWith"))
                 .createAlgorithmConfiguration();
         return algorithmConfiguration;
     }

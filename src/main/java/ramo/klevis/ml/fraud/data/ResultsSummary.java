@@ -1,4 +1,6 @@
-package ramo.klevis.ml.fraud;
+package ramo.klevis.ml.fraud.data;
+
+import ramo.klevis.ml.fraud.algorithm.AlgorithmConfiguration;
 
 import java.util.Arrays;
 
@@ -7,7 +9,7 @@ import java.util.Arrays;
  */
 public class ResultsSummary {
 
-    private long trainDataSize;
+    private long trainRegularSize;
 
     private long timeInMilliseconds;
 
@@ -21,9 +23,6 @@ public class ResultsSummary {
     private long testFraudSize;
     private long testRegularSize;
     private long testTotalDataSize;
-
-    private double successPercentage;
-    private double failPercentage;
 
     private long totalRegularSize;
     private long totalFraudSize;
@@ -40,6 +39,8 @@ public class ResultsSummary {
     private int id;
     private TransactionType transactionType;
     private AlgorithmConfiguration algorithmConfiguration;
+    private long trainFraudSize;
+    private int trainTotalDataSize;
 
     public ResultsSummary() {
 
@@ -86,14 +87,17 @@ public class ResultsSummary {
     }
 
     public long getTotalNotFoundFraudSize() {
+        totalNotFoundFraudSize = testNotFoundFraudSize + crossNotFoundFraudSize;
         return totalNotFoundFraudSize;
     }
 
     public long getTotalFoundFraudSize() {
+        totalFoundFraudSize = testFoundFraudSize + crossFoundFraudSize;
         return totalFoundFraudSize;
     }
 
     public long getTotalFlaggedAsFraud() {
+        totalFlaggedAsFraud = testFlaggedAsFraud + crossFlaggedAsFraud;
         return totalFlaggedAsFraud;
     }
 
@@ -113,12 +117,12 @@ public class ResultsSummary {
         this.totalFraudSize = totalFraudSize;
     }
 
-    public long getTrainDataSize() {
-        return trainDataSize;
+    public long getTrainRegularSize() {
+        return trainRegularSize;
     }
 
-    public void setTrainDataSize(long trainDataSize) {
-        this.trainDataSize = trainDataSize;
+    public void setTrainRegularSize(long trainDataSize) {
+        this.trainRegularSize = trainDataSize;
     }
 
     public long getCrossTotalDataSize() {
@@ -186,12 +190,11 @@ public class ResultsSummary {
     }
 
     public double getSuccessPercentage() {
-        return successPercentage;
+        return (double) getTotalFoundFraudSize() / (double) getTotalFraudSize();
     }
 
-
     public double getFailPercentage() {
-        return failPercentage;
+        return (double) getTotalNotFoundFraudSize() / (double) getTotalFraudSize();
     }
 
     public long getTestFraudSize() {
@@ -244,34 +247,50 @@ public class ResultsSummary {
 
     @Override
     public String toString() {
-        return "ResultsSummary{" + "\n" +
-                " trainDataSize=" + trainDataSize + "\n" +
-                " timeInMilliseconds=" + timeInMilliseconds + "\n" +
-                " epsilon=" + epsilon + "\n" +
-                " mu=" + Arrays.toString(mu) + "\n" +
-                " sigma=" + Arrays.toString(sigma) + "\n" +
-                " testNotFoundFraudSize=" + testNotFoundFraudSize + "\n" +
-                " testFoundFraudSize=" + testFoundFraudSize + "\n" +
-                " testFlaggedAsFraud=" + testFlaggedAsFraud + "\n" +
-                " testFraudSize=" + testFraudSize + "\n" +
-                " testRegularSize=" + testRegularSize + "\n" +
-                " testTotalDataSize=" + testTotalDataSize + "\n" +
-                " successPercentage=" + successPercentage + "\n" +
-                " failPercentage=" + failPercentage + "\n" +
-                " totalRegularSize=" + totalRegularSize + "\n" +
-                " totalFraudSize=" + totalFraudSize + "\n" +
-                " totalNotFoundFraudSize=" + totalNotFoundFraudSize + "\n" +
-                " totalFoundFraudSize=" + totalFoundFraudSize + "\n" +
-                " totalFlaggedAsFraud=" + totalFlaggedAsFraud + "\n" +
-                " crossFoundFraudSize=" + crossFoundFraudSize + "\n" +
-                " crossFlaggedAsFraud=" + crossFlaggedAsFraud + "\n" +
-                " crossNotFoundFraudSize=" + crossNotFoundFraudSize + "\n" +
-                " crossFraudSize=" + crossFraudSize + "\n" +
-                " crossRegularSize=" + crossRegularSize + "\n" +
-                " crossTotalDataSize=" + crossTotalDataSize + "\n" +
-                " id=" + id +
-                " transactionType=" + transactionType + "\n" +
-                " Algorithm Configuration=" + algorithmConfiguration + "\n" +
-                '}';
+        return "ResultsSummary{\n" +
+                ", RUN =" + id + "\n" +
+                ", successPercentage=" + getSuccessPercentage() + "\n" +
+                ", failPercentage=" + getFailPercentage() + "\n" +
+                "trainRegularSize=" + trainRegularSize + "\n" +
+                ", trainFraudSize=" + trainFraudSize + "\n" +
+                ", trainTotalDataSize=" + trainTotalDataSize + "\n" +
+                ", transactionType=" + transactionType + "\n" +
+                ", timeInMilliseconds=" + timeInMilliseconds + "\n" +
+                ", testNotFoundFraudSize=" + testNotFoundFraudSize + "\n" +
+                ", testFoundFraudSize=" + testFoundFraudSize + "\n" +
+                ", testFlaggedAsFraud=" + testFlaggedAsFraud + "\n" +
+                ", testFraudSize=" + testFraudSize + "\n" +
+                ", testRegularSize=" + testRegularSize + "\n" +
+                ", testTotalDataSize=" + testTotalDataSize + "\n" +
+                ", crossFoundFraudSize=" + crossFoundFraudSize + "\n" +
+                ", crossFlaggedAsFraud=" + crossFlaggedAsFraud + "\n" +
+                ", crossNotFoundFraudSize=" + crossNotFoundFraudSize + "\n" +
+                ", crossFraudSize=" + crossFraudSize + "\n" +
+                ", crossRegularSize=" + crossRegularSize + "\n" +
+                ", crossTotalDataSize=" + crossTotalDataSize + "\n" +
+                ", totalRegularSize=" + getTotalRegularSize() + "\n" +
+                ", totalFraudSize=" + getTotalFraudSize() + "\n" +
+                ", totalNotFoundFraudSize=" + getTotalNotFoundFraudSize() + "\n" +
+                ", totalFoundFraudSize=" + getTotalFoundFraudSize() + "\n" +
+                ", totalFlaggedAsFraud=" + getTotalFlaggedAsFraud() + "\n" +
+                ", epsilon=" + epsilon + "\n" +
+                ", sigma=" + Arrays.toString(sigma) + "\n" +
+                ", mu=" + Arrays.toString(mu) + "\n";
+    }
+
+    public void setTrainFraudSize(long trainFraudSize) {
+        this.trainFraudSize = trainFraudSize;
+    }
+
+    public long getTrainFraudSize() {
+        return trainFraudSize;
+    }
+
+    public void setTrainTotalDataSize(int trainTotalDataSize) {
+        this.trainTotalDataSize = trainTotalDataSize;
+    }
+
+    public int getTrainTotalDataSize() {
+        return trainTotalDataSize;
     }
 }
