@@ -23,7 +23,7 @@ import static java.lang.Integer.parseInt;
  */
 public class Run {
 
-    private static final String ALGORITHM_PROPERTIES_PATH = "src/main/resources/algorithm.properties";
+    private static final String ALGORITHM_PROPERTIES_PATH = "config/algorithm.properties";
     private static final String TRANSACTION_TYPES = "transactionTypes";
     private static final String SKIP_FEATURES = "skipFeatures";
     private static final String MAKE_FEATURES_MORE_GAUSSIAN = "makeFeaturesMoreGaussian";
