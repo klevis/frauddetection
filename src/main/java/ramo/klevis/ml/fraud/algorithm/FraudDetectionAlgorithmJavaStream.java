@@ -173,7 +173,16 @@ public class FraudDetectionAlgorithmJavaStream extends AlgorithmTemplateExecutio
         //skip first line
         br.readLine();
         while ((line = br.readLine()) != null) {
-            double[] as = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
+
+            double[] as = Stream.of(line.split(","))
+                    .mapToDouble(e -> Double.parseDouble(e
+                            .replaceAll(TransactionType.PAYMENT.name(), "1")
+                            .replaceAll(TransactionType.TRANSFER.name(), "2")
+                            .replaceAll(TransactionType.CASH_OUT.name(), "3")
+                            .replaceAll(TransactionType.DEBIT.name(), "4")
+                            .replaceAll(TransactionType.CASH_IN.name(), "5")
+                            .replaceAll("C", "1")
+                            .replaceAll("M", "2"))).toArray();
             if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
                 makeFeaturesMoreGaussian(as);
             }

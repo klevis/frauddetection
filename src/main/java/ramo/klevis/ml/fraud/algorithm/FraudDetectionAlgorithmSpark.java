@@ -168,20 +168,32 @@ public class FraudDetectionAlgorithmSpark extends AlgorithmTemplateExecution<Jav
 
     protected JavaRDD<LabeledPoint> loadDataFromFile(JavaSparkContext sc) throws IOException {
         File file = new File(algorithmConfiguration.getFileName());
-        Function<String, LabeledPoint> stringLabeledPointFunction = new Function<String, LabeledPoint>() {
-            @Override
-            public LabeledPoint call(String line) throws Exception {
-                double[] featureValues = Stream.of(line.split(",")).mapToDouble(e -> Double.parseDouble(e)).toArray();
-                if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
-                    FraudDetectionAlgorithmSpark.this.makeFeaturesMoreGaussian(featureValues);
-                }
-                //always skip 9 and 10 because they are labels fraud or not fraud
-                double label = featureValues[9];
-                featureValues = Arrays.copyOfRange(featureValues, 0, 9);
-                return new LabeledPoint(label, Vectors.dense(featureValues));
-            }
-        };
+
         return sc.textFile(file.getPath()).
-                map(stringLabeledPointFunction).cache();
+                map(line -> {
+
+                    String[] split = line.split(",");
+                    //skip header
+                    if (split[0].equalsIgnoreCase("step")) {
+                        return null;
+                    }
+                    double[] featureValues = Stream.of(split)
+                            .mapToDouble(e -> Double.parseDouble(
+                                    e
+                                    .replaceAll(TransactionType.PAYMENT.name(), "1")
+                                    .replaceAll(TransactionType.TRANSFER.name(), "2")
+                                    .replaceAll(TransactionType.CASH_OUT.name(), "3")
+                                    .replaceAll(TransactionType.DEBIT.name(), "4")
+                                    .replaceAll(TransactionType.CASH_IN.name(), "5")
+                                            .replaceAll("C", "1")
+                                            .replaceAll("M", "2"))).toArray();
+                    if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
+                        FraudDetectionAlgorithmSpark.this.makeFeaturesMoreGaussian(featureValues);
+                    }
+                    //always skip 9 and 10 because they are labels fraud or not fraud
+                    double label = featureValues[9];
+                    featureValues = Arrays.copyOfRange(featureValues, 0, 9);
+                    return new LabeledPoint(label, Vectors.dense(featureValues));
+                }).cache();
     }
 }
