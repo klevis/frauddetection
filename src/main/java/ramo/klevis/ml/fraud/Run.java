@@ -1,5 +1,7 @@
 package ramo.klevis.ml.fraud;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import ramo.klevis.ml.fraud.algorithm.AlgorithmConfiguration;
 import ramo.klevis.ml.fraud.algorithm.FraudDetectionAlgorithmJavaStream;
 import ramo.klevis.ml.fraud.algorithm.FraudDetectionAlgorithmSpark;
@@ -32,6 +34,9 @@ public class Run {
     private static final String RUNS_TIME = "runsTime";
 
     public static void main(String[] args) throws Exception {
+        Logger.getLogger("org").setLevel(Level.OFF);
+        Logger.getLogger("akka").setLevel(Level.OFF);
+
         AlgorithmConfiguration algorithmConfiguration = getAlgorithmConfigurationFromProperties();
         setHadoopHomeEnvironmentVariable(algorithmConfiguration);
         IFraudDetectionAlgorithm fraudDetectionAlgorithm = getiFraudDetectionAlgorithm(algorithmConfiguration);
