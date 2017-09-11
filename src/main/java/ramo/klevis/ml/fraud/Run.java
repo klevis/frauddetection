@@ -46,6 +46,7 @@ public class Run {
         long startTime = System.currentTimeMillis();
         List<ResultsSummary> resultsSummaries = fraudDetectionAlgorithm.executeAlgorithm();
         System.out.println("Finish within " + (System.currentTimeMillis() - startTime));
+        preapreDirectory();
         for (ResultsSummary resultsSummary : resultsSummaries) {
             PrintWriter printWriter = new PrintWriter("out/ResultSummaries" + (ThreadLocalRandom.current().nextInt()) + "-" + resultsSummary.getId() + ".txt");
             System.out.println(resultsSummary);
@@ -54,6 +55,13 @@ public class Run {
             printWriter.close();
         }
 
+    }
+
+    private static void preapreDirectory() {
+        File out = new File("out");
+        if (!out.exists()) {
+            out.mkdir();
+        }
     }
 
     private static IFraudDetectionAlgorithm getiFraudDetectionAlgorithm(AlgorithmConfiguration algorithmConfiguration) {
