@@ -173,7 +173,13 @@ public class FraudDetectionAlgorithmJavaStream extends AlgorithmTemplateExecutio
         //skip first line
         br.readLine();
         while ((line = br.readLine()) != null) {
-
+            line = line.replace(TransactionType.PAYMENT.name(), "1")
+                    .replace(TransactionType.TRANSFER.name(), "2")
+                    .replace(TransactionType.CASH_OUT.name(), "3")
+                    .replace(TransactionType.DEBIT.name(), "4")
+                    .replace(TransactionType.CASH_IN.name(), "5")
+                    .replace("C", "1")
+                    .replace("M", "2");
             double[] as = Stream.of(line.split(","))
                     .mapToDouble(e -> Double.parseDouble(e
                             .replaceAll(TransactionType.PAYMENT.name(), "1")

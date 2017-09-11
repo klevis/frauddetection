@@ -171,7 +171,13 @@ public class FraudDetectionAlgorithmSpark extends AlgorithmTemplateExecution<Jav
 
         return sc.textFile(file.getPath()).
                 map(line -> {
-
+                    line = line.replace(TransactionType.PAYMENT.name(), "1")
+                            .replace(TransactionType.TRANSFER.name(), "2")
+                            .replace(TransactionType.CASH_OUT.name(), "3")
+                            .replace(TransactionType.DEBIT.name(), "4")
+                            .replace(TransactionType.CASH_IN.name(), "5")
+                            .replace("C", "1")
+                            .replace("M", "2");
                     String[] split = line.split(",");
                     //skip header
                     if (split[0].equalsIgnoreCase("step")) {
