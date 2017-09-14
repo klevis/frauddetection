@@ -184,15 +184,7 @@ public class FraudDetectionAlgorithmSpark extends AlgorithmTemplateExecution<Jav
                         return null;
                     }
                     double[] featureValues = Stream.of(split)
-                            .mapToDouble(e -> Double.parseDouble(
-                                    e
-                                    .replaceAll(TransactionType.PAYMENT.name(), "1")
-                                    .replaceAll(TransactionType.TRANSFER.name(), "2")
-                                    .replaceAll(TransactionType.CASH_OUT.name(), "3")
-                                    .replaceAll(TransactionType.DEBIT.name(), "4")
-                                    .replaceAll(TransactionType.CASH_IN.name(), "5")
-                                            .replaceAll("C", "1")
-                                            .replaceAll("M", "2"))).toArray();
+                            .mapToDouble(e -> Double.parseDouble(e)).toArray();
                     if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
                         FraudDetectionAlgorithmSpark.this.makeFeaturesMoreGaussian(featureValues);
                     }

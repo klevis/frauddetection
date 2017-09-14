@@ -17,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -165,14 +167,8 @@ public class FraudDetectionAlgorithmJavaStream extends AlgorithmTemplateExecutio
     }
 
     protected List<LabeledPoint> loadDataFromFile(JavaSparkContext sc) throws IOException {
-        List<LabeledPoint> data = new ArrayList<>();
         File file = new File(algorithmConfiguration.getFileName());
-        FileReader in = new FileReader(file);
-        BufferedReader br = new BufferedReader(in);
-        String line;
-        //skip first line
-        br.readLine();
-        while ((line = br.readLine()) != null) {
+        return Files.readAllLines(Paths.get(file.getAbsolutePath())).parallelStream().skip(1).map(line -> {
             line = line.replace(TransactionType.PAYMENT.name(), "1")
                     .replace(TransactionType.TRANSFER.name(), "2")
                     .replace(TransactionType.CASH_OUT.name(), "3")
@@ -181,22 +177,14 @@ public class FraudDetectionAlgorithmJavaStream extends AlgorithmTemplateExecutio
                     .replace("C", "1")
                     .replace("M", "2");
             double[] as = Stream.of(line.split(","))
-                    .mapToDouble(e -> Double.parseDouble(e
-                            .replaceAll(TransactionType.PAYMENT.name(), "1")
-                            .replaceAll(TransactionType.TRANSFER.name(), "2")
-                            .replaceAll(TransactionType.CASH_OUT.name(), "3")
-                            .replaceAll(TransactionType.DEBIT.name(), "4")
-                            .replaceAll(TransactionType.CASH_IN.name(), "5")
-                            .replaceAll("C", "1")
-                            .replaceAll("M", "2"))).toArray();
+                    .mapToDouble(e -> Double.parseDouble(e)).toArray();
             if (algorithmConfiguration.isMakeFeaturesMoreGaussian()) {
                 makeFeaturesMoreGaussian(as);
             }
             double[] doubles = Arrays.copyOfRange(as, 0, 9);//skip 9 and 10 for frauds}
-            data.add(new LabeledPoint(as[9], Vectors.dense(doubles)));
+            return new LabeledPoint(as[9], Vectors.dense(doubles));
 
-        }
-        return data;
+        }).collect(toList());
     }
 
 
