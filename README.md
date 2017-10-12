@@ -1,3 +1,1 @@
-# frauddetection
-
-ramok.tech
+# http://ramok.tech
